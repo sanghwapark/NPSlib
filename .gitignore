@@ -1,0 +1,11 @@
+# Build directories
+build*/
+cmake-build-*/
+
+# Editor lint
+.#*
+*~
+*.sw?
+
+# macOS pollution
+.DS_Store
