@@ -525,19 +525,44 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 	fVTPErrorFlag = 1;
       }
       else {
-// 	cout << "VTP data for event " << evdata.GetEvNum() << " for module in crate " << d->crate <<  endl;
-// 	cout << "N trigger words = " << isvtp->GetNTriggers() << " N cluster words " << isvtp->GetNClusters() <<  endl;
+	// 	cout << "VTP data for event " << evdata.GetEvNum() << " for module in crate " << d->crate <<  endl;
+	// 	cout << "N trigger words = " << isvtp->GetNTriggers() << " N cluster words " << isvtp->GetNClusters() <<  endl;
+	if( Nvtpfound == 1 ) {
+	  fVTPTriggerTime  = isvtp->GetTriggerTime();
+	  fVTPTriggerType0 = isvtp->GetTriggerType0();
+	  fVTPTriggerType1 = isvtp->GetTriggerType1();
+	  fVTPTriggerType2 = isvtp->GetTriggerType2();
+	  
+	  fVTPClusterTime   = isvtp->GetClusterTime();
+	  fVTPClusterEnergy = isvtp->GetClusterEnergy();
+	  fVTPClusterSize   = isvtp->GetClusterSize();
+	  fVTPClusterX      = isvtp->GetClusterX();
+	  fVTPClusterY      = isvtp->GetClusterY();
+	}
+	else {
 
-	fVTPTriggerTime  = isvtp->GetTriggerTime();
-	fVTPTriggerType0 = isvtp->GetTriggerType0();
-	fVTPTriggerType1 = isvtp->GetTriggerType1();
-	fVTPTriggerType2 = isvtp->GetTriggerType2();
+	  auto temp1 = isvtp->GetTriggerTime();
+	  fVTPTriggerTime.insert( fVTPTriggerTime.end(), temp1.begin(), temp1.end() );   
+	  auto temp2 = isvtp->GetTriggerType0();
+	  fVTPTriggerType0.insert( fVTPTriggerType0.end(), temp2.begin(), temp2.end() );   
+	  auto temp3 = isvtp->GetTriggerType1();
+	  fVTPTriggerType1.insert( fVTPTriggerType1.end(), temp3.begin(), temp3.end() );   
+	  auto temp4 = isvtp->GetTriggerType2();
+	  fVTPTriggerType2.insert( fVTPTriggerType2.end(), temp4.begin(), temp4.end() );   
 
-	fVTPClusterTime   = isvtp->GetClusterTime();
-	fVTPClusterEnergy = isvtp->GetClusterEnergy();
-	fVTPClusterSize   = isvtp->GetClusterSize();
-	fVTPClusterX      = isvtp->GetClusterX();
-	fVTPClusterY      = isvtp->GetClusterY();
+	  auto temp5 = isvtp->GetClusterTime();
+	  fVTPClusterTime.insert( fVTPClusterTime.end(), temp5.begin(), temp5.end() );   
+	  auto temp6 = isvtp->GetClusterEnergy();
+	  fVTPClusterEnergy.insert( fVTPClusterEnergy.end(), temp6.begin(), temp6.end() );   
+	  auto temp7 = isvtp->GetClusterSize();
+	  fVTPClusterSize.insert( fVTPClusterSize.end(), temp7.begin(), temp7.end() );   
+	  auto temp8 = isvtp->GetClusterX();
+	  fVTPClusterX.insert( fVTPClusterX.end(), temp8.begin(), temp8.end() );   
+	  auto temp9 = isvtp->GetClusterY();
+	  fVTPClusterY.insert( fVTPClusterY.end(), temp9.begin(), temp9.end() );   
+
+	}
+
       }
     }
   }
@@ -571,7 +596,7 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
     }
     fAnalyzePedestals = 0;	// Don't analyze pedestals next event
   }
-
+  
   Int_t nexthit = 0;
   if(fHasArray) {
     if(clear) fArray->ClearProcessedHits();
@@ -584,6 +609,8 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
   }
   //  cout << "Nhits=" << nhits << endl;
   return nhits;
+
+  return 0;
 }
 
 //_____________________________________________________________________________
