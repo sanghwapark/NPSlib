@@ -4,7 +4,7 @@
 //   1 block trailer
 //   2 event header
 //   3 trigger time
-//   12 NPS cluster
+//   12 cluster
 //   13 trigger decision
 //   14 data not valid (empty module)
 //   15 filler (non-data) word
@@ -116,7 +116,6 @@ void VTPModule::DecodeBlockHeader( UInt_t pdat, uint32_t data_type_id )
     slots_match = ((uint32_t) fSlot == vtp_header_data.slot_blk_hdr);
     if( !slots_match )
       return;
-    //    vtp_header_data.iblock_num = (pdat >> 11) & 0xFF;    // DJH Event block number, mask 8 bits
     vtp_header_data.iblock_num = (pdat >> 8) & 0x3FF;    // Event block number, mask 10 bits
     vtp_header_data.nblock_events = (pdat >> 0) & 0xFF;  // Number of events in block, mask 8 bits
     // Debug output
@@ -137,8 +136,7 @@ void VTPModule::DecodeBlockTrailer( UInt_t pdat )
 {
   block_trailer_found = true;
   vtp_header_data.slot_blk_trl = (pdat >> 22) & 0x1F;       // Slot number (set by VME64x backplane), mask 5 bits
-  vtp_header_data.nwords_inblock = (pdat >> 0) & 0xFFFFF;  // DJH Total number of words in block of events, mask 20 bits
-  //  vtp_header_data.nwords_inblock = (pdat >> 0) & 0x3FFFFF;  // Total number of words in block of events, mask 22 bits
+  vtp_header_data.nwords_inblock = (pdat >> 0) & 0x3FFFFF;  // Total number of words in block of events, mask 22 bits
   // Debug output
 #ifdef WITH_DEBUG
   if( fDebugFile )
@@ -154,7 +152,7 @@ void VTPModule::DecodeBlockTrailer( UInt_t pdat )
 void VTPModule::DecodeEventHeader( UInt_t pdat )
 {
   event_header_found = true;
-  vtp_header_data.trig_num = (pdat >> 0) & 0xFFFFF;  // DJH Trigger number, mask 20 bits
+  vtp_header_data.trig_num = (pdat >> 0) & 0x3FFFFF;  // Trigger number, mask 22 bits
 #ifdef WITH_DEBUG
   if( fDebugFile )
     *fDebugFile << "VTPModule::Decode:: VTP EVENT HEADER"
@@ -194,10 +192,10 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
     uint32_t ttype1   = 0;
     uint32_t ttype2   = 0;
     
-    if( data_type_id ) {  // NPS trigger decision word 1
+    if( data_type_id ) {  // trigger decision word 1
       
-      tpattern = (pdat >> 0) & 0xFFFF; // NPS trigger pattern, mask 16 bits
-      ttime    = (pdat >> 16) & 0x7F;  // NPS trigger time, mask 11 bits
+      tpattern = (pdat >> 0) & 0xFFFF; // trigger pattern, mask 16 bits
+      ttime    = (pdat >> 16) & 0x7F;  // trigger time, mask 11 bits
       
       if( (tpattern >> 0 ) & 0x1 ) ttype0 = 1;
       if( (tpattern >> 1 ) & 0x1 ) ttype1 = 1;
@@ -208,11 +206,10 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
       vtp_trigger_data.trigtype2.push_back( ttype2 );
       vtp_trigger_data.trigtime.push_back( ttime );
     }
-    // else  // NPS trigger decision word 2 (DJH: no second word?)
     
 #ifdef WITH_DEBUG
     if( fDebugFile )
-      *fDebugFile << "VTPModule::Decode:: VTP NPS Trigger"
+      *fDebugFile << "VTPModule::Decode:: VTP Trigger"
 		  << " >> data  = " << hex << pdat << dec
 		  << " >> trig0 = " << ttype0
 		  << " >> trig1 = " << ttype1
@@ -223,7 +220,7 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
   }
   
   //_____________________________________________________________________________
-  void VTPModule::DecodeNPSCluster( UInt_t pdat, uint32_t data_type_id )
+  void VTPModule::DecodeCluster( UInt_t pdat, uint32_t data_type_id )
   {
     uint32_t ce = 0;
     uint32_t ct = 0;
@@ -231,14 +228,14 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
     uint32_t cx = 0;
     uint32_t cy = 0;
     
-    if( data_type_id )  { // NPS cluster word 1
-      ce = (pdat >> 0) & 0x3FFF;  // NPS cluster energy, mask 14 bits
+    if( data_type_id )  { //  cluster word 1
+      ce = (pdat >> 0) & 0x3FFF;  //  cluster energy, mask 14 bits
     }
-    else { // NPS ckuster word 2
-      ct = (pdat >> 0)  & 0x7F;   // NPS cluster time, mask 11 bits
-      cn = (pdat >> 11) & 0xF;    // NPS cluster n blocks, mask 4 bits
-      cx = (pdat >> 15) & 0x1F;   // NPS cluster x coordinate, mask 5 bits
-      cy = (pdat >> 20) & 0x3F;   // NPS cluster y coordinate, mask 6 bits
+    else { //  ckuster word 2
+      ct = (pdat >> 0)  & 0x7F;   //  cluster time, mask 11 bits
+      cn = (pdat >> 11) & 0xF;    //  cluster n blocks, mask 4 bits
+      cx = (pdat >> 15) & 0x1F;   //  cluster x coordinate, mask 5 bits
+      cy = (pdat >> 20) & 0x3F;   //  cluster y coordinate, mask 6 bits
     }
 
     vtp_cluster_data.energy.push_back( ce ); 
@@ -249,7 +246,7 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
 
 #ifdef WITH_DEBUG
   if( fDebugFile )
-    *fDebugFile << "VTPModule::Decode:: VTP NPS Cluster"
+    *fDebugFile << "VTPModule::Decode:: VTP  Cluster"
                 << " >> data = " << hex << pdat << dec
                 << " >> energy = " << ce
                 << " >> n blocks = " << cn
@@ -352,8 +349,8 @@ Int_t VTPModule::Decode( const UInt_t* pdat )
       DecodeTriggerTime(data, data_type_id);
       break;
       break;
-    case 12: // NPS cluster
-      DecodeNPSCluster(data, data_type_id);
+    case 12: // cluster
+      DecodeCluster(data, data_type_id);
       break;
     case 13: // trigger decision
       DecodeTriggerDecision(data, data_type_id);
@@ -388,7 +385,7 @@ void VTPModule::LoadTHaSlotDataObj( THaSlotData* sldat )
 {
   // Load THaSlotData
 
-  // NPS trigger data
+  // trigger data
   for( vsiz_t itrig = 0; itrig < vtp_trigger_data.trigtype0.size(); itrig++ )
     sldat->loadData("scaler", 0, vtp_trigger_data.trigtype0[itrig], vtp_trigger_data.trigtype0[itrig]);
   for( vsiz_t itrig = 0; itrig < vtp_trigger_data.trigtype1.size(); itrig++ )
@@ -398,7 +395,7 @@ void VTPModule::LoadTHaSlotDataObj( THaSlotData* sldat )
   for( vsiz_t itrig = 0; itrig < vtp_trigger_data.trigtime.size(); itrig++ )
     sldat->loadData("scaler", 0, vtp_trigger_data.trigtime[itrig], vtp_trigger_data.trigtime[itrig]);
 
-  // NPS cluster data
+  // cluster data
   for( vsiz_t iclus = 0; iclus < vtp_cluster_data.energy.size(); iclus++ )
     sldat->loadData("scaler", 0, vtp_cluster_data.energy[iclus], vtp_cluster_data.energy[iclus]);
   for( vsiz_t iclus = 0; iclus < vtp_cluster_data.time.size(); iclus++ )

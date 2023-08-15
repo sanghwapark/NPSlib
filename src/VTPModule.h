@@ -84,12 +84,12 @@ public:
    void DecodeEventHeader( UInt_t pdat );
    void DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id );
    void UnsupportedType( UInt_t pdat, uint32_t data_type_id );
-   void DecodeNPSCluster( UInt_t pdat, uint32_t data_type_id );
+   void DecodeCluster( UInt_t pdat, uint32_t data_type_id );
    void DecodeTriggerDecision( UInt_t pdat, uint32_t data_type_id );
 
    static TypeIter_t fgThisType;
    
-   ClassDef(VTPModule,0)        // NPS VTP module
+   ClassDef(VTPModule,0)        // VTP module
      
   };
 
