@@ -500,7 +500,7 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 {
 
   //cout << "--------------------> New Event Number: " << evdata.GetEvNum() << endl;
-  Bool_t clear;
+  Bool_t clear = false;
 
   // DJH 09/04/22 -- only create dedicated analyzer object if using SHMS data
   if(fCalReplicate==0)
@@ -511,8 +511,8 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 
   // DJH: decode VTP here (for now?)
   Int_t Nvtpfound = 0;
-  Int_t Ntottrig  = 0;
-  Int_t Ntotclus  = 0;
+  //Int_t Ntottrig  = 0;
+  //Int_t Ntotclus  = 0;
 
   for (UInt_t i=0; i < fDetMap->GetSize(); i++) { // Look for a VTP
     THaDetMap::Module* d = fDetMap->GetModule(i);
@@ -705,7 +705,7 @@ void THcNPSCalorimeter::ClusterHits(THcNPSShowerHitSet& HitSet,
     //cout << "ClusterList Size = " << ClusterList->size() << endl;
     
     //Loop over ALL clusters per event
-    for (int i=0; i<ClusterList->size(); i++){
+    for (size_t i=0; i<ClusterList->size(); i++){
       
       //Loop over ALL hit blocks per cluster per event
       for(THcNPSShowerClusterIt j=(*ClusterList->at(i)).begin(); j!=(*ClusterList->at(i)).end(); ++j){
@@ -818,7 +818,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
   // "PHASE 1: VIRUS IDENTIFICATION\n"
   // "********************************" << endl;
     
-  for(UInt_t j=0; j < fNbBlocks; j++){ 
+  for(Int_t j=0; j < fNbBlocks; j++){ 
 
     //cout << "--------CENTRAL J-th Block------ " << endl;
     //cout << "(j-index, Block ID, pulseInt) = " << j << ", " << good_blk_id[j] << ", " << good_blk_pulseInt[j] << endl;   
@@ -1106,7 +1106,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     //cout << "ClusterList Size = " << ClusterList->size() << endl;
     
     //Loop over ALL clusters per event
-    for (int i=0; i<ClusterList->size(); i++){
+    for (size_t i=0; i<ClusterList->size(); i++){
       
       //cout << "----> Cluster i = " << i << endl;
       //cout << "# of hits in cluster = " << (*ClusterList->at(i)).size() << endl;
