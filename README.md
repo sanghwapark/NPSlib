@@ -19,7 +19,7 @@ Building the library currently requires a CMake build of hcana (version >= 0.97)
 
 ```
 % hcana -l
-hcana [0] gSystem->Load("BUILD/src/libNPSlib")
+hcana [0] gSystem->Load("BUILD/src/libNPS")
 (int) 0
 hcana [1] .class THcNPSApparatus
 ==========================================

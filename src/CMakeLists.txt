@@ -6,7 +6,7 @@ cmake_minimum_required(VERSION 3.5)
 # Names of source files and target libraries
 
 # The generated shared library will be named lib$(PACKAGE).so/dylib
-set(PACKAGE NPSlib)
+set(PACKAGE NPS)
 
 # Sources
 set(src
