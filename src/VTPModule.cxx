@@ -230,19 +230,18 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
     
     if( data_type_id )  { //  cluster word 1
       ce = (pdat >> 0) & 0x3FFF;  //  cluster energy, mask 14 bits
+      vtp_cluster_data.energy.push_back( ce ); 
     }
     else { //  ckuster word 2
       ct = (pdat >> 0)  & 0x7F;   //  cluster time, mask 11 bits
       cn = (pdat >> 11) & 0xF;    //  cluster n blocks, mask 4 bits
       cx = (pdat >> 15) & 0x1F;   //  cluster x coordinate, mask 5 bits
       cy = (pdat >> 20) & 0x3F;   //  cluster y coordinate, mask 6 bits
+      vtp_cluster_data.time.push_back( ct );
+      vtp_cluster_data.nblocks.push_back( cn );
+      vtp_cluster_data.xcoord.push_back( cx );
+      vtp_cluster_data.ycoord.push_back( cy );
     }
-
-    vtp_cluster_data.energy.push_back( ce ); 
-    vtp_cluster_data.time.push_back( ct );
-    vtp_cluster_data.nblocks.push_back( cn );
-    vtp_cluster_data.xcoord.push_back( cx );
-    vtp_cluster_data.ycoord.push_back( cy );
 
 #ifdef WITH_DEBUG
   if( fDebugFile )
