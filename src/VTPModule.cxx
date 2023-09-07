@@ -233,7 +233,7 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
       vtp_cluster_data.energy.push_back( ce ); 
     }
     else { //  ckuster word 2
-      ct = (pdat >> 0)  & 0x7F;   //  cluster time, mask 11 bits
+      ct = (pdat >> 0)  & 0x7FF;   //  cluster time, mask 11 bits
       cn = (pdat >> 11) & 0xF;    //  cluster n blocks, mask 4 bits
       cx = (pdat >> 15) & 0x1F;   //  cluster x coordinate, mask 5 bits
       cy = (pdat >> 20) & 0x3F;   //  cluster y coordinate, mask 6 bits
