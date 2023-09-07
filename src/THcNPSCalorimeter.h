@@ -13,6 +13,7 @@
 #include "THcNPSArray.h"
 #include "THcNPSShowerHit.h"
 #include "THcNPSAnalyzer.h"
+#include "THcNPSCluster.h"
 #include "TMath.h"
 
 class THcNPSCalorimeter : public THaNonTrackingDetector, public THcHitList {
@@ -41,8 +42,9 @@ public:
     return fShMinPeds;
   }
 
+  Int_t GetNClusters() { return fClusters.size(); }
+  vector<THcNPSCluster> GetClusters() { return fClusters; }
 
-  
   /*  ---- C.Y. I thing these A,B,C,D, layer correction is ONLY for HMS and pre-shower but NOT for NPS
   //Coordinate correction for HMS single PMT modules.
   //PMT attached at right (positive) side.
@@ -95,6 +97,9 @@ public:
   THcNPSCalorimeter();  // for ROOT I/O
 
 protected:
+
+  // Cluster array 
+  std::vector<THcNPSCluster> fClusters;
 
   // DJH: VTP stuff
   static const Int_t fnVTP = 5;

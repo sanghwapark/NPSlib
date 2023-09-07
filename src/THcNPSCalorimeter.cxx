@@ -14,6 +14,7 @@
 #include "THcGlobals.h"
 #include "THaCutList.h"
 #include "THcParmList.h"
+#include "THcNPSCluster.h"
 #include "VTPModule.h"
 #include "VarDef.h"
 #include "VarType.h"
@@ -381,13 +382,13 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
   // Register variables in global list
 
   RVarDef vars[] = {
-    { "nhits", "Number of hits",                                 "fNhits" },
-    { "nclust", "Number of layer clusters",                            "fNclust" },
-    { "etot", "Total energy",                                    "fEtot" },
-    { "etrack", "Track energy",                                  "fEtrack" },
-    { "eprtrack", "Track Preshower energy",                      "fEPRtrack" },
+    { "nhits",        "Number of hits",                             "fNhits" },
+    { "nclust",       "Number of layer clusters",                   "fNclust" },
+    { "etot",         "Total energy",                               "fEtot" },
+    { "etrack",       "Track energy",                               "fEtrack" },  // We don't really need these track associated variables, remove?
+    { "eprtrack",     "Track Preshower energy",                     "fEPRtrack" },
     { "eprtracknorm", "Preshower energy divided by track momentum", "fEPRtrackNorm" },
-    { "etottracknorm", "Total energy divided by track momentum", "fETotTrackNorm" },
+    { "etottracknorm","Total energy divided by track momentum",     "fETotTrackNorm" },
     //{ "ntracks", "Number of shower tracks",                      "fNtracks" }, //C.Y. Jan 13, 2021, comment out to prevent replay errors for now.
     { "vtpErrorFlag", "VTP error flag",           "fVTPErrorFlag"     },
     { "vtpTrigTime",  "VTP trigger time",         "fVTPTriggerTime"   },
@@ -486,7 +487,6 @@ void THcNPSCalorimeter::Clear(Option_t* opt)
   fNblockHighEnergy = 0.;
 
   // Purge cluster list
-
   for (THcNPSShowerClusterListIt i=fClusterList->begin(); i!=fClusterList->end();
        ++i) {
     Podd::DeleteContainer(**i);
@@ -698,7 +698,6 @@ void THcNPSCalorimeter::ClusterHits(THcNPSShowerHitSet& HitSet,
 
   } //While hit_list not exhausted
 
-  
   // C.Y. Apr 07, 2021: Added lines to write clusters to file for plotting in 2D grid (and comparing to NPS clustering approach)
   if(fMakeGrid) {
 
@@ -1097,7 +1096,6 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     
   }
 
-
   
   // C.Y. Apr 07, 2021: Added lines to write clusters to file for plotting in 2D grid (and comparing to NPS clustering approach)
   if(fMakeGrid) {
@@ -1244,12 +1242,15 @@ Int_t THcNPSCalorimeter::FineProcess( TClonesArray& tracks )
 
   //cout << "Calling THcNPSCalorimeter::FineProcess() . . . " << endl;
 
-  // Shower energy assignment to the spectrometer tracks.
-  //
+  fClusters.clear();
 
+  // Loop over all clusters, get position and energy
+  for(THcNPSShowerClusterListIt ppcl = (*fClusterList).begin();
+      ppcl != (*fClusterList).end(); ++ppcl) {
+    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clE(*ppcl));
+    fClusters.push_back(cls);
+  }
   
-  //Debug output.
-
   return 0;
 }
 
