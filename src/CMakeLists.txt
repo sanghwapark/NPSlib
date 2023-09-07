@@ -15,6 +15,8 @@ set(src
   THcNPSArray.cxx
   THcNPSCalorimeter.cxx
   THcNPSShowerHit.cxx
+  THcNPSCluster.cxx
+  THcNPSSecondaryKine.cxx
   VTPModule.cxx
   )
 
