@@ -385,6 +385,11 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
     { "nhits",        "Number of hits",                             "fNhits" },
     { "nclust",       "Number of layer clusters",                   "fNclust" },
     { "etot",         "Total energy",                               "fEtot" },
+    { "clusX",        "Cluster x coordinate",                       "clX" },
+    { "clusY",        "Cluster y coordinate",                       "clY" },
+    { "clusZ",        "Cluster z coordinate",                       "clZ" },
+    { "clusT",        "Cluster time",                               "clT" },
+    { "clusE",        "Cluster energy",                             "clE" },
     { "etrack",       "Track energy",                               "fEtrack" },  // We don't really need these track associated variables, remove?
     { "eprtrack",     "Track Preshower energy",                     "fEPRtrack" },
     { "eprtracknorm", "Preshower energy divided by track momentum", "fEPRtrackNorm" },
@@ -769,9 +774,11 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
   Int_t fNbBlocks = 0; //counter of number of blocks hit
 
   //Define vectors to store hit blocks info
-  vector<Double_t> blk_pulseInt(fNelem, -1);        //store max pulse integral for ALL blocks (by default, is -1 for all elements)
+  //vector<Double_t> blk_pulseInt(fNelem, -1);        //store max pulse integral for ALL blocks (by default, is -1 for all elements)
+  vector<Double_t> blk_energy(fNelem, -1);          //store max energy for ALL blocks (by default, is -1 for all elements)
   vector<Int_t>    good_blk_id;                     //store block id that was hit (variable-size), specifies (index hit, block_id hit)
-  vector<Double_t> good_blk_pulseInt;               //store max pulse integral per block hit (if there are multiple hits) (index hit, max pulse Int)
+  //vector<Double_t> good_blk_pulseInt;               //store max pulse integral per block hit (if there are multiple hits) (index hit, max pulse Int)
+  vector<Double_t> good_blk_energy;                 //store max energy per block hit (if there are multiple hits) (index hit, max energy)
 
   //clusters counter
   Int_t NbClusters=0;
@@ -790,9 +797,11 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
   for (THcNPSShowerHitIt ihit=HitSet.begin(); ihit!=HitSet.end(); ++ihit) {
 
     //fill  vectors
-    blk_pulseInt[ (*ihit)->hitID() ]    =  (*ihit)->hitPI();
+    //blk_pulseInt[ (*ihit)->hitID() ]    =  (*ihit)->hitPI();
+    blk_energy[ (*ihit)->hitID() ]    =  (*ihit)->hitE();
     good_blk_id.push_back( (*ihit)->hitID() );
-    good_blk_pulseInt.push_back( (*ihit)->hitPI() );
+    //good_blk_pulseInt.push_back( (*ihit)->hitPI() );
+    good_blk_energy.push_back( (*ihit)->hitE() );
     
     //Set hit block index
     blk_hit_idx[ (*ihit)->hitID() ] = fNbBlocks;
@@ -842,7 +851,8 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
 
 	//Check if the kth neighbor block good pulse integral is greater than the ith central block (if so, then the central block is NOT a virus)
 	 //if( blk_pulseInt[ fArray->GetNeighbor(good_blk_id[j], k) ] > blk_pulseInt[ good_blk_id[j] ] ){
-	 if( blk_pulseInt[ fArray->GetNeighbor(good_blk_id[j], k) ] > good_blk_pulseInt[j] ){
+	 //if( blk_pulseInt[ fArray->GetNeighbor(good_blk_id[j], k) ] > good_blk_pulseInt[j] ){
+	 if( blk_energy[ fArray->GetNeighbor(good_blk_id[j], k) ] > good_blk_energy[j] ){
 	   //cout<< " k-th Neighbor Pulse Integral > j-th Central Block Pulse Integral | Set 'virus[j]=false' for central block !" << endl;
 	  //set to false if ith central block is NOT a virus (If there's one neighbour with more energy, it's not a local maximum)
 	  virus[j]   = false;
@@ -882,7 +892,8 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     //check if 'jth' hit block is a virus
     if(virus[j]==true){
       //cout << "(Virus Block ID, Pulse Int) = " << good_blk_id[j] << ", " << good_blk_pulseInt[j] << endl;
-      pIvirus[cp] = good_blk_pulseInt[j]; //Virus' energies
+      //pIvirus[cp] = good_blk_pulseInt[j]; //Virus' pulseInt
+      pIvirus[cp] = good_blk_energy[j]; //Virus' energies
       cp++;
       
     }
@@ -901,14 +912,17 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
   for(Int_t j=0; j<fNbBlocks; j++){
 
     //assign pulse integral to pIpas
-    pIpas[ good_blk_id[j] ] = good_blk_pulseInt[j]; 
+    //pIpas[ good_blk_id[j] ] = good_blk_pulseInt[j]; 
+    //assign energy to pIpas
+    pIpas[ good_blk_id[j] ] = good_blk_energy[j];
 
     //If the 'jth' block was identified as a virus previously, then set ill[j] = true, and assign a temporary pulseInt pIpastmp
     //corresponding to the virus pulse integral.  The virus block will be identified as already ill in the contamination phase.
     if(virus[j]) {
 
       ill[j] = true;
-      pIpastmp[ good_blk_id[j] ] = good_blk_pulseInt[j];
+      //pIpastmp[ good_blk_id[j] ] = good_blk_pulseInt[j];
+      pIpastmp[ good_blk_id[j] ] = good_blk_energy[j];
 
     }
   }
@@ -1150,6 +1164,10 @@ Double_t addZ(Double_t x, THcNPSShowerHit* h) {
   return x + h->hitE() * h->hitZ();
 }
 
+Double_t addT(Double_t x, THcNPSShowerHit* h) {
+  return x + h->hitE() * h->hitT();
+}
+
 Double_t addEpr(Double_t x, THcNPSShowerHit* h) {
   return h->hitColumn() == 0 ? x + h->hitE() : x;
 }
@@ -1183,6 +1201,15 @@ Double_t clZ(THcNPSShowerCluster* cluster) {
   Double_t Etot = accumulate((*cluster).begin(),(*cluster).end(),0.,addE);
   return (Etot != 0. ?
 	  accumulate((*cluster).begin(),(*cluster).end(),0.,addZ)/Etot : 0.);
+}
+
+// Time of cluster, calculated as a hit energy weighted average. 
+// Put T at -100 ns if there is no energy deposition in cluster.
+//
+Double_t clT(THcNPSShowerCluster* cluster) {
+  Double_t Etot = accumulate((*cluster).begin(),(*cluster).end(),0.,addE);
+  return (Etot != 0. ?
+	  accumulate((*cluster).begin(),(*cluster).end(),0.,addT)/Etot : -1000.);
 }
 
 //Energy depostion in a cluster
@@ -1244,10 +1271,10 @@ Int_t THcNPSCalorimeter::FineProcess( TClonesArray& tracks )
 
   fClusters.clear();
 
-  // Loop over all clusters, get position and energy
+  // Loop over all clusters, get position, time, and energy
   for(THcNPSShowerClusterListIt ppcl = (*fClusterList).begin();
       ppcl != (*fClusterList).end(); ++ppcl) {
-    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clE(*ppcl));
+    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
     fClusters.push_back(cls);
   }
   
