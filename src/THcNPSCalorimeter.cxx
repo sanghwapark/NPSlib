@@ -1150,11 +1150,13 @@ Double_t addZ(Double_t x, THcNPSShowerHit* h) {
   return x + h->hitE() * h->hitZ();
 }
 
+Double_t addT(Double_t x, THcNPSShowerHit* h) {
+  return x + h->hitE() * h->hitT();
+}
+
 Double_t addEpr(Double_t x, THcNPSShowerHit* h) {
   return h->hitColumn() == 0 ? x + h->hitE() : x;
 }
-
-
 
 // Y coordinate of center of gravity of cluster, calculated as hit energy
 // weighted average. Put X out of the calorimeter (-100 cm), if there is no
@@ -1183,6 +1185,15 @@ Double_t clZ(THcNPSShowerCluster* cluster) {
   Double_t Etot = accumulate((*cluster).begin(),(*cluster).end(),0.,addE);
   return (Etot != 0. ?
 	  accumulate((*cluster).begin(),(*cluster).end(),0.,addZ)/Etot : 0.);
+}
+
+// Time of cluster, calculated as a hit energy weighted average.
+// Put T at -1000 ns if there is no energy deposition in cluster.
+//
+Double_t clT(THcNPSShowerCluster* cluster) {
+  Double_t Etot = accumulate((*cluster).begin(),(*cluster).end(),0.,addE);
+  return (Etot != 0. ?
+	  accumulate((*cluster).begin(),(*cluster).end(),0.,addT)/Etot : 0.);
 }
 
 //Energy depostion in a cluster
@@ -1244,10 +1255,10 @@ Int_t THcNPSCalorimeter::FineProcess( TClonesArray& tracks )
 
   fClusters.clear();
 
-  // Loop over all clusters, get position and energy
+  // Loop over all clusters, get position, time, and energy
   for(THcNPSShowerClusterListIt ppcl = (*fClusterList).begin();
       ppcl != (*fClusterList).end(); ++ppcl) {
-    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clE(*ppcl));
+    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
     fClusters.push_back(cls);
   }
   

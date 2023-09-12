@@ -13,7 +13,7 @@
 class THcNPSCluster : public THaCluster {
  public:
   THcNPSCluster();
-  THcNPSCluster(Double_t x, Double_t y, Double_t z, Double_t e, Double_t t);
+  THcNPSCluster(Double_t x, Double_t y, Double_t z, Double_t t, Double_t e);
   virtual ~THcNPSCluster() = default;
 
   virtual void Clear( Option_t* opt="" );
@@ -25,20 +25,26 @@ class THcNPSCluster : public THaCluster {
   // Getter/Setter functions
   bool       HasVertex()          const { return fHasVertex; }
   Double_t   E()                  const { return fE; }
-  void       GetTime()                  { return fT; }
+  Double_t   GetTime()                  { return fT; }
   TVector3&  GetPvect()                 { return fPvect; } 
   TVector3&  GetVertex()                { return fVertex; }
-  void       GetTheta()                 { return fPvect.Theta(); } // in lab frame
-  void       GetPhi()                   { return fPvect.Phi(); }   // in lab frame
+  Double_t   GetTheta()                 { return fPvect.Theta(); } // in lab frame
+  Double_t   GetPhi()                   { return fPvect.Phi(); }   // in lab frame
+  Double_t   GetP()               const { return fP; }
 
-  void       SetEnergy(Double_t energy) { fE = energy; }
-  void       SetTime(Double_t time)     { fT = time; }
-  void       SetVertex(const TVector3& vertex) { fVertex = vertex; fHasVertex = true; }
-  void       SetVertex(Double_t vx, Double_t vy, Double_t vz) { fVertex.SetXYZ(vx, vy, vz); fHasVertex = true; }
+  void       SetEnergy(Double_t energy)      { fE = energy; }
+  void       SetTime(Double_t time)          { fT = time; }
+  void       SetMomentum( Double_t p )       { fP = p; }
   void       SetPvect(const TVector3& pvect) { fPvect = pvect; }
+
+  void       SetVertex(const TVector3& vertex) 
+  { fVertex = vertex; fHasVertex = true; }
+  void       SetVertex(Double_t vx, Double_t vy, Double_t vz) 
+  { fVertex.SetXYZ(vx, vy, vz); fHasVertex = true; }
 
  protected:
 
+  Double_t fP;          // momentum
   Double_t fE;          // Cluster energy deposit
   Double_t fT;          // Cluster time
   bool     fHasVertex;   

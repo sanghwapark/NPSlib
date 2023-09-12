@@ -762,6 +762,7 @@ Int_t THcNPSArray::CoarseProcess(TClonesArray& tracks)
 	   << "  X=" << clX(*ppcl)
 	   << "  Y=" << clY(*ppcl)
 	   << "  Z=" << clZ(*ppcl)
+	   << "  T=" << clT(*ppcl)
 	   << "  size=" << (**ppcl).size()
 	   << endl;
 
