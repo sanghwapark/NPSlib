@@ -17,6 +17,7 @@ set(src
   THcNPSShowerHit.cxx
   THcNPSCluster.cxx
   THcNPSSecondaryKine.cxx
+  THcNPSCoinTime.cxx
   VTPModule.cxx
   )
 

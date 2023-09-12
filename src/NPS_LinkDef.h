@@ -11,6 +11,7 @@
 #pragma link C++ class THcNPSShowerHit+;
 #pragma link C++ class THcNPSCluster+;
 #pragma link C++ class THcNPSSecondaryKine+;
+#pragma link C++ class THcNPSCoinTime+;
 #pragma link C++ class Decoder::VTPModule+;
 
 #endif
