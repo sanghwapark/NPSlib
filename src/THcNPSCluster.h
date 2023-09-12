@@ -8,7 +8,6 @@
 //////////////////////////////////////
 
 #include "THaCluster.h"
-#include "TVector3.h"
 
 class THcNPSCluster : public THaCluster {
  public:
@@ -44,9 +43,9 @@ class THcNPSCluster : public THaCluster {
 
  protected:
 
-  Double_t fP;          // momentum
   Double_t fE;          // Cluster energy deposit
   Double_t fT;          // Cluster time
+  Double_t fP;          // momentum
   bool     fHasVertex;   
   TVector3 fVertex;     // vertex information from other spectrometer
   TVector3 fPvect;      // momentum vector

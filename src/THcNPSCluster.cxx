@@ -33,7 +33,7 @@ THcNPSCluster::THcNPSCluster(Double_t x, Double_t y, Double_t z, Double_t t, Dou
 //______________________________________________________
 void THcNPSCluster::Clear( Option_t* )
 {
-  fCenter.SetXYZ( kBig, kBig, kBig);
+  fCenter.SetXYZ(kBig, kBig, kBig);
   fPvect.SetXYZ( kBig, kBig, kBig);
   fVertex.SetXYZ( kBig, kBig, kBig);
   fCenterLab.SetXYZ( kBig, kBig, kBig);
