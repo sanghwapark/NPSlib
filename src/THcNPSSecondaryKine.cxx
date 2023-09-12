@@ -33,7 +33,12 @@
 #include "THcNPSCalorimeter.h"
 #include "THcNPSCluster.h"
 #include "THcNPSSecondaryKine.h"
+#include "THcGlobals.h"
+#include "THcParmList.h"
+#include "VarDef.h"
+#include "VarType.h"
 #include "TVector3.h"
+
 
 #include <iostream>
 
@@ -183,25 +188,13 @@ Int_t THcNPSSecondaryKine::Process( const THaEvData& )
   // or calcualte kinematics for all identified clusters, store, use it as a cut
   // For now, use a cluster with highest energy deposit
   Double_t ClusterMaxE = 0;
-  TVector3 pvect(0,0,0);
+  TVector3 pvect;
   for(auto& cluster : fNPSCalo->GetClusters())
     if( cluster.E() > ClusterMaxE )
       {
-	// Cluster position defined on the detector plane
-	Double_t x_cls = cluster.X();
-	Double_t y_cls = cluster.Y();
-	Double_t z_cls = cluster.Z();
-
-	Double_t x_lab = x_cls*cos(fNPSAngle) + z_cls*sin(fNPSAngle);
-	Double_t y_lab = y_cls;
-	Double_t z_lab = -x_cls*sin(fNPSAngle) + z_cls*cos(fNPSAngle);
-
-	TVector3 rvect(x_lab, y_lab, z_lab);
-	Double_t th = rvect.Theta();
-	Double_t ph = rvect.Phi();
-	pvect.SetXYZ(cluster.E() * cos(th) * sin(ph),
-		     cluster.E() * sin(th) * sin(ph),
-		     cluster.E() * cos(ph));
+	ClusterMaxE = cluster.E();
+	// vertex correction and get P vector
+	cluster.RotateToLab(fNPSAngle, vertex, pvect);
       }
 
   // 4-momentum of X
@@ -328,27 +321,27 @@ Int_t THcNPSSecondaryKine::ReadDatabase( const TDatime& date )
   // NPS angle
   fNPSAngle = TMath::DegToRad()*fApparatus->GetNPSAngle();
 
-  // Set default detected particle mass for photon
-  // FIXME: we want to read parameters from db files
-  fMX = 0.0;
-
   // cout << "In THcSecondaryKine::ReadDatabase() " << endl;
 
+  // Ignore prefix for now
   /*
   char prefix[2];
-
   prefix[0] = tolower(GetName()[0]);
   prefix[1] = '\0';
-
+  */
   fOopCentralOffset = 0.0;
   DBRequest list[]={
-    {"_oopcentral_offset",&fOopCentralOffset,kDouble, 0, 1},
-    {"partmass",          &fMX,        kDouble      },
+    {"nps_oopcentral_offset",&fOopCentralOffset, kDouble, 0, 1},
+    {"ppartmass",            &fMX, kDouble, 0, 1},
     {0}
   };
-  gHcParms->LoadParmValues((DBRequest*)&list,prefix);
+
+  gHcParms->LoadParmValues((DBRequest*)&list,"");
   cout << "THcSecondaryKine particleMASS: " << fMX << endl; 
-  */  
+
+  // default value
+  fMX = 0.0;
+  fOopCentralOffset = 0.;
 
   return kOK;
 }

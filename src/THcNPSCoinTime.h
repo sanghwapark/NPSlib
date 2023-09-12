@@ -13,17 +13,16 @@
 //////////////////////////////////////////////
 
 #include "TString.h"
-
 #include "THaPhysicsModule.h"
-#include "THaTrack.h"
 #include "THcTrigDet.h"
 #include "THcHallCSpectrometer.h"
+#include "THaTrack.h"
 #include "THcNPSApparatus.h"
 #include "THcNPSCalorimeter.h"
 
-#define LIGHTSPEED 29.9792;          // cm/ns
-#define MASSS_ELECTRON 0.000510998;  // electron mass in GeV/c^2
-#define MASSS_PROTON 0.93827208;     // proton mass in GeV/c^2
+#define LIGHTSPEED 29.9792         // cm/ns
+#define MASS_ELECTRON 0.000510998  // electron mass in GeV/c^2
+#define MASS_PROTON 0.93827208     // proton mass in GeV/c^2
 
 class THcNPSCoinTime : public THaPhysicsModule {
  public:
@@ -58,25 +57,28 @@ class THcNPSCoinTime : public THaPhysicsModule {
   Double_t fNPSAngle;
   Double_t feHad_CT_Offset;
   Double_t fHMScentralPathLen;
-  Double_t fNPScentralPathLeh;
+  Double_t fNPScentralPathLen;
 
   // Calculated using HMS track
   Double_t fDeltaHMSpathLength;
 
-  Double_t fROC1_RAW_CoinTime;
+  Double_t fROC1_RAW_CoinTime1;
+  Double_t fROC1_RAW_CoinTime2;
   Double_t fNPS_RAW_CoinTime;
   Double_t fHMS_RAW_CoinTime;
 
-  Double_t fROC1_epCoinTime;
+  Double_t fROC1_epCoinTime1;
+  Double_t fROC1_epCoinTime2;
   Double_t fNPS_epCoinTime;
   Double_t fHMS_epCoinTime;
 
   // Trigger time pTrig1 T1 (NPS VTP||EDTM) and T3 (HMS 3/4)
   Double_t pNPS_TdcTime_ROC1;
   Double_t pHMS_TdcTime_ROC1;
+  Double_t pELRE_TdcTime_ROC1;
 
   Double_t elec_coinCorr;
-  Double_t had_coinCorr_Proton;
+  Double_t had_coinCorr_proton;
 
   ClassDef(THcNPSCoinTime,0)
 };
