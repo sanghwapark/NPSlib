@@ -32,9 +32,10 @@ THcNPSCoinTime::~THcNPSCoinTime()
 //________________________________________________________________________
 void THcNPSCoinTime::Clear( Option_t* opt )
 {
-
-  fROC1_epCoinTime1 = fROC1_epCoinTime2 =  kBig;
   fROC1_RAW_CoinTime1 = fROC1_RAW_CoinTime2 = fNPS_RAW_CoinTime = fHMS_RAW_CoinTime = kBig;
+  fROC1_RAW_CoinTime1_NoTrack = fROC1_RAW_CoinTime2_NoTrack = kBig;
+  fROC1_epCoinTime1 = fROC1_epCoinTime2 =  kBig;
+  fNPS_epCoinTime = fHMS_epCoinTime = kBig;
   elec_coinCorr = had_coinCorr_proton = kBig;
 }
 
@@ -140,6 +141,8 @@ Int_t THcNPSCoinTime::DefineVariables( EMode mode )
     
     {"CoinTime1_RAW_ROC1", "ROC1 RAW Coincidence Time, NPS & HMS 3/4",     "fROC1_RAW_CoinTime1"},
     {"CoinTime2_RAW_ROC1", "ROC1 RAW Coincidence Time, NPS & El-Real",     "fROC1_RAW_CoinTime2"},
+    {"CoinTime1_RAW_ROC1_NoTrack", "ROC1 RAW Coincidence Time w/o Track Param, NPS & HMS 3/4",     "fROC1_RAW_CoinTime1_NoTrack"},
+    {"CoinTime2_RAW_ROC1_NoTrack", "ROC1 RAW Coincidence Time w/o Track Paarm, NPS & El-Real",     "fROC1_RAW_CoinTime2_NoTrack"},
     {"CoinTime_RAW_NPS",   "NPS RAW Coincidence Time",                     "fNPS_RAW_CoinTime"},
     {"CoinTime_RAW_HMS",   "HMS RAW Coincidence Time",                     "fHMS_RAW_CoinTime"},
 
@@ -159,6 +162,17 @@ Int_t THcNPSCoinTime::Process( const THaEvData& evdata )
 
   if( !IsOK() ) return -1;
 
+  // Raw Tdctime
+  // We only use ROC1
+  pNPS_TdcTime_ROC1 = fCoinDet->Get_CT_Trigtime(0);   // pTRIG1_ROC1: NPS VTP
+  pHMS_TdcTime_ROC1 = fCoinDet->Get_CT_Trigtime(1);   // pTRIG3_ROC1: HMS 3/4
+  pELRE_TdcTime_ROC1 = fCoinDet->Get_CT_Trigtime(3);  // pTRIG4_ROC1: HMS ELREAL
+  
+  // Raw, Uncorrected Coincidence Time with out Track
+  fROC1_RAW_CoinTime1_NoTrack =  pNPS_TdcTime_ROC1 - pHMS_TdcTime_ROC1;
+  fROC1_RAW_CoinTime2_NoTrack =  pNPS_TdcTime_ROC1 - pELRE_TdcTime_ROC1;
+
+  // HMS Track, NPS cluster
   // Get HMS tracks
   THaTrackInfo* hms_trkifo = fHMSSpect->GetTrackInfo();
   if( !hms_trkifo ) return 1;
@@ -200,11 +214,6 @@ Int_t THcNPSCoinTime::Process( const THaEvData& evdata )
   if (NPS_FPtime == -2000 || HMS_FPtime == -2000) return 1;
   if (NPS_FPtime == -1000 || HMS_FPtime == -1000) return 1;
 
-  // We only use ROC1
-  pNPS_TdcTime_ROC1 = fCoinDet->Get_CT_Trigtime(0);   // pTRIG1_ROC1: NPS VTP
-  pHMS_TdcTime_ROC1 = fCoinDet->Get_CT_Trigtime(1);   // pTRIG3_ROC1: HMS 3/4
-  pELRE_TdcTime_ROC1 = fCoinDet->Get_CT_Trigtime(3);  // pTRIG4_ROC1: HMS ELREAL
-  
   fDeltaHMSpathLength = -1.0*(12.462*hms_xpfp + 0.1138*hms_xpfp*hms_xfp - 0.0154*hms_xfp - 72.292*hms_xpfp*hms_xpfp - 0.0000544*hms_xfp*hms_xfp - 116.52*hms_ypfp*hms_ypfp);
   fDeltaHMSpathLength = (.12*hms_xptar*1000 +0.17*hms_dP/100.);
   
@@ -232,6 +241,7 @@ Int_t THcNPSCoinTime::Process( const THaEvData& evdata )
 
   // Raw, Uncorrected Coincidence Time
   // Since we have two coincidence trig, check both
+
   fROC1_RAW_CoinTime1 =  (pNPS_TdcTime_ROC1 + NPS_FPtime) - (pHMS_TdcTime_ROC1 + HMS_FPtime);
   fROC1_RAW_CoinTime2 =  (pNPS_TdcTime_ROC1 + NPS_FPtime) - (pELRE_TdcTime_ROC1 + HMS_FPtime);
 
