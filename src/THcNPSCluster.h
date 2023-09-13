@@ -24,7 +24,8 @@ class THcNPSCluster : public THaCluster {
   // Getter/Setter functions
   bool       HasVertex()          const { return fHasVertex; }
   Double_t   E()                  const { return fE; }
-  Double_t   GetTime()                  { return fT; }
+  Double_t   T()                  const { return fT; }
+  Double_t   GetTime()            const { return fT; }
   TVector3&  GetPvect()                 { return fPvect; } 
   TVector3&  GetVertex()                { return fVertex; }
   Double_t   GetTheta()                 { return fPvect.Theta(); } // in lab frame
