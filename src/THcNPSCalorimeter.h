@@ -101,6 +101,14 @@ protected:
   // Cluster array 
   std::vector<THcNPSCluster> fClusters;
 
+  // M. Mathison Sep. 11, 2023: Added cluster variables for root output
+
+  std::vector<Double_t> fClusterX;
+  std::vector<Double_t> fClusterY;
+  std::vector<Double_t> fClusterZ;
+  std::vector<Double_t> fClusterT;
+  std::vector<Double_t> fClusterE;
+
   // DJH: VTP stuff
   static const Int_t fnVTP = 5;
   Int_t fVTPErrorFlag;
@@ -163,7 +171,6 @@ protected:
   THcNPSAnalyzer *fAnalyzer;
 
   Int_t fClustMethod;
-
   
   // Geometrical parameters.
 

@@ -385,11 +385,11 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
     { "nhits",        "Number of hits",                             "fNhits" },
     { "nclust",       "Number of layer clusters",                   "fNclust" },
     { "etot",         "Total energy",                               "fEtot" },
-    { "etrack",       "Track energy",                               "fEtrack" },  // We don't really need these track associated variables, remove?
-    { "eprtrack",     "Track Preshower energy",                     "fEPRtrack" },
-    { "eprtracknorm", "Preshower energy divided by track momentum", "fEPRtrackNorm" },
-    { "etottracknorm","Total energy divided by track momentum",     "fETotTrackNorm" },
-    //{ "ntracks", "Number of shower tracks",                      "fNtracks" }, //C.Y. Jan 13, 2021, comment out to prevent replay errors for now.
+    { "clusX",        "Cluster x coordinate",                       "fClusterX" },
+    { "clusY",        "Cluster y coordinate",                       "fClusterY" },
+    { "clusZ",        "Cluster z coordinate",                       "fClusterZ" },
+    { "clusT",        "Cluster time",                               "fClusterT" },
+    { "clusE",        "Cluster energy",                             "fClusterE" },
     { "vtpErrorFlag", "VTP error flag",           "fVTPErrorFlag"     },
     { "vtpTrigTime",  "VTP trigger time",         "fVTPTriggerTime"   },
     { "vtpTrigType0", "VTP trigger type0 bit",    "fVTPTriggerType0"  },
@@ -493,6 +493,14 @@ void THcNPSCalorimeter::Clear(Option_t* opt)
     delete *i;
   }
   fClusterList->clear();
+
+  fClusters.clear();
+
+  fClusterX.clear();
+  fClusterY.clear();
+  fClusterZ.clear();
+  fClusterT.clear();
+  fClusterE.clear();
 }
 
 //_____________________________________________________________________________
@@ -698,6 +706,22 @@ void THcNPSCalorimeter::ClusterHits(THcNPSShowerHitSet& HitSet,
 
   } //While hit_list not exhausted
 
+
+  fNclust = (*ClusterList).size();
+
+  // Add clusters
+  for (THcNPSShowerClusterListIt ppcl = (*ClusterList).begin(); 
+       ppcl != (*ClusterList).end(); ++ppcl) {
+    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
+    fClusters.push_back(cls);
+
+    fClusterX.push_back(cls.X());
+    fClusterY.push_back(cls.Y());
+    fClusterZ.push_back(cls.Z());
+    fClusterT.push_back(cls.T());
+    fClusterE.push_back(cls.E());
+  }
+
   // C.Y. Apr 07, 2021: Added lines to write clusters to file for plotting in 2D grid (and comparing to NPS clustering approach)
   if(fMakeGrid) {
 
@@ -717,7 +741,6 @@ void THcNPSCalorimeter::ClusterHits(THcNPSShowerHitSet& HitSet,
     } //end loop over clusters
 
   } //end fMakeGrid requirement
-  
    
 };
 
@@ -1096,6 +1119,19 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     
   }
 
+  fNclust = (*ClusterList).size();
+
+  for (THcNPSShowerClusterListIt ppcl = (*ClusterList).begin(); 
+       ppcl != (*ClusterList).end(); ++ppcl) {
+    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
+    fClusters.push_back(cls);
+
+    fClusterX.push_back(cls.X());
+    fClusterY.push_back(cls.Y());
+    fClusterZ.push_back(cls.Z());
+    fClusterT.push_back(cls.T());
+    fClusterE.push_back(cls.E());
+  }
   
   // C.Y. Apr 07, 2021: Added lines to write clusters to file for plotting in 2D grid (and comparing to NPS clustering approach)
   if(fMakeGrid) {
@@ -1252,16 +1288,6 @@ Int_t THcNPSCalorimeter::FineProcess( TClonesArray& tracks )
 {
 
   //cout << "Calling THcNPSCalorimeter::FineProcess() . . . " << endl;
-
-  fClusters.clear();
-
-  // Loop over all clusters, get position, time, and energy
-  for(THcNPSShowerClusterListIt ppcl = (*fClusterList).begin();
-      ppcl != (*fClusterList).end(); ++ppcl) {
-    THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
-    fClusters.push_back(cls);
-  }
-  
   return 0;
 }
 
