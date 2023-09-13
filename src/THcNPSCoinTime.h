@@ -64,6 +64,9 @@ class THcNPSCoinTime : public THaPhysicsModule {
 
   Double_t fROC1_RAW_CoinTime1;
   Double_t fROC1_RAW_CoinTime2;
+  Double_t fROC1_RAW_CoinTime1_NoTrack;
+  Double_t fROC1_RAW_CoinTime2_NoTrack;
+
   Double_t fNPS_RAW_CoinTime;
   Double_t fHMS_RAW_CoinTime;
 
