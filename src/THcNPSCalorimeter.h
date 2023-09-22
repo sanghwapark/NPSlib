@@ -123,6 +123,13 @@ protected:
   std::vector<UInt_t> fVTPClusterX;
   std::vector<UInt_t> fVTPClusterY;
 
+  // DJH: VLD stuff
+  static const Int_t fnVLD = 10;
+  Int_t fVLDErrorFlag;
+
+  std::vector<UInt_t> fVLDRow;
+  std::vector<UInt_t> fVLDColumn;
+
   //C.Y. Feb 22, 2021 : Added output filestream for the purpose of
   //writing to file (and plotting a 2D grid of) the blocks
   //that participate on cluster formation

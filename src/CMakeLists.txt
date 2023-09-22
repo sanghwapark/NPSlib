@@ -19,6 +19,7 @@ set(src
   THcNPSSecondaryKine.cxx
   THcNPSCoinTime.cxx
   VTPModule.cxx
+  VLDModule.cxx
   )
 
 # Headers

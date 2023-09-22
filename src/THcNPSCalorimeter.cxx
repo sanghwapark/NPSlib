@@ -16,6 +16,7 @@
 #include "THcParmList.h"
 #include "THcNPSCluster.h"
 #include "VTPModule.h"
+#include "VLDModule.h"
 #include "VarDef.h"
 #include "VarType.h"
 #include "THaTrack.h"
@@ -47,6 +48,7 @@ THcNPSCalorimeter::THcNPSCalorimeter( const char* name, const char* description,
   //cout << "Calling Constructor | THcNPSCalorimeter::THcNPSCalorimeter() . . . " << endl;
 
   fVTPErrorFlag = 0;
+  fVLDErrorFlag = 0;
 
   // Constructor
   //  fNLayers = 0;			// No layers until we make them
@@ -400,6 +402,9 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
     { "vtpClusSize",  "VTP cluster n blocks",     "fVTPClusterSize"   },
     { "vtpClusX",     "VTP cluster x coordinate", "fVTPClusterX"      },
     { "vtpClusY",     "VTP cluster y coordinate", "fVTPClusterY"      },
+    { "vldErrorFlag", "VLD error flag",           "fVLDErrorFlag"     },
+    { "vldRow",       "VLD row",                  "fVLDRow"           },
+    { "vldColumn",    "VLD column",               "fVLDColumn"        },
     { 0 }
   };
 
@@ -517,14 +522,16 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
   if(clear) Clear();
   // Should move this up to the apparatus level.
 
-  // DJH: decode VTP here (for now?)
+  // DJH: decode VTP and VLD here (for now?)
   Int_t Nvtpfound = 0;
-  //Int_t Ntottrig  = 0;
-  //Int_t Ntotclus  = 0;
+  Int_t Nvldfound = 0;
 
   for (UInt_t i=0; i < fDetMap->GetSize(); i++) { // Look for a VTP
+
     THaDetMap::Module* d = fDetMap->GetModule(i);
-    Decoder::VTPModule* isvtp = dynamic_cast<Decoder::VTPModule*>(evdata.GetModule(d->crate, d->slot));
+
+     Decoder::VTPModule* isvtp = dynamic_cast<Decoder::VTPModule*>(evdata.GetModule(d->crate, d->slot));
+
     if(isvtp) {
       Nvtpfound++;
       if(  evdata.GetEvNum() != isvtp->GetTriggerNum() ) {
@@ -533,8 +540,6 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 	fVTPErrorFlag = 1;
       }
       else {
-	// 	cout << "VTP data for event " << evdata.GetEvNum() << " for module in crate " << d->crate <<  endl;
-	// 	cout << "N trigger words = " << isvtp->GetNTriggers() << " N cluster words " << isvtp->GetNClusters() <<  endl;
 	if( Nvtpfound == 1 ) {
 	  fVTPTriggerTime  = isvtp->GetTriggerTime();
 	  fVTPTriggerType0 = isvtp->GetTriggerType0();
@@ -573,10 +578,41 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 
       }
     }
+    Decoder::VLDModule* isvld = dynamic_cast<Decoder::VLDModule*>(evdata.GetModule(d->crate, d->slot));
+    
+    if(isvld) {
+      
+      Nvldfound++;
+      
+      auto vldChannel = isvld->GetChannel();
+
+      UInt_t column;
+      
+      for( size_t i=0; i<vldChannel.size(); i++ ) {
+
+	if( d->crate == 10 ) {
+	  column = vldChannel.at(i)/36 + 27 ; 
+	}
+	else if( d->crate == 11 ) {
+	  column = vldChannel.at(i)/36 + 24 ; 
+	}
+	else if( d->crate == 14 )
+	  column = vldChannel.at(i)/36 + ( 3 * (d->slot - 13) ); 
+	
+	fVLDRow.push_back( vldChannel.at(i)%36 );
+	fVLDColumn.push_back( column );
+	
+      }
+    }
   }
+  
   if( Nvtpfound > fnVTP ) {
     cout << "THcNPSCalorimeter VTP decode error: Found " << Nvtpfound << " VTP modules. There should be " << fnVTP << endl;
     fVTPErrorFlag = 1;
+  }
+  if( Nvldfound > fnVLD ) {
+    cout << "THcNPSCalorimeter VLD decode error: Found " << Nvldfound << " VLD modules. There should be " << fnVLD << endl;
+    fVLDErrorFlag = 1;
   }
 
   // Get the Hall C style hitlist (fRawHitList) for this event
