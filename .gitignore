@@ -9,3 +9,9 @@ cmake-build-*/
 
 # macOS pollution
 .DS_Store
+
+#Doxygen stuff
+docs/ROOT.tag
+docs/html
+docs/Doxygen_hcana.tag
+docs/Doxygen_podd.tag
