@@ -402,9 +402,10 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
     { "vtpClusSize",  "VTP cluster n blocks",     "fVTPClusterSize"   },
     { "vtpClusX",     "VTP cluster x coordinate", "fVTPClusterX"      },
     { "vtpClusY",     "VTP cluster y coordinate", "fVTPClusterY"      },
-    { "vldErrorFlag", "VLD error flag",           "fVLDErrorFlag"     },
-    { "vldRow",       "VLD row",                  "fVLDRow"           },
-    { "vldColumn",    "VLD column",               "fVLDColumn"        },
+    { "vldErrorFlag",     "VLD error flag",           "fVLDErrorFlag"     },
+    { "vldLoChannelMask", "VLD lo channel mask",      "fVLDLoChannelMask" },
+    { "vldHiChannelMask", "VLD hi channel mask",      "fVLDHiChannelMask" },
+    { "vldColumn",        "VLD column",               "fVLDColumn"        },
     { 0 }
   };
 
@@ -506,6 +507,11 @@ void THcNPSCalorimeter::Clear(Option_t* opt)
   fClusterZ.clear();
   fClusterT.clear();
   fClusterE.clear();
+
+  fVLDLoChannelMask.clear();
+  fVLDHiChannelMask.clear();
+  fVLDColumn.clear();
+
 }
 
 //_____________________________________________________________________________
@@ -522,15 +528,16 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
   if(clear) Clear();
   // Should move this up to the apparatus level.
 
-  // DJH: decode VTP and VLD here (for now?)
+  // DJH: decode VTP and VLD here (for now)
+
   Int_t Nvtpfound = 0;
   Int_t Nvldfound = 0;
-
-  for (UInt_t i=0; i < fDetMap->GetSize(); i++) { // Look for a VTP
+  
+  for (UInt_t i=0; i < fDetMap->GetSize(); i++) { 
 
     THaDetMap::Module* d = fDetMap->GetModule(i);
 
-     Decoder::VTPModule* isvtp = dynamic_cast<Decoder::VTPModule*>(evdata.GetModule(d->crate, d->slot));
+     Decoder::VTPModule* isvtp = dynamic_cast<Decoder::VTPModule*>(evdata.GetModule(d->crate, d->slot)); // Look for a VTP
 
     if(isvtp) {
       Nvtpfound++;
@@ -578,28 +585,34 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 
       }
     }
-    Decoder::VLDModule* isvld = dynamic_cast<Decoder::VLDModule*>(evdata.GetModule(d->crate, d->slot));
+
+    Decoder::VLDModule* isvld = dynamic_cast<Decoder::VLDModule*>(evdata.GetModule(d->crate, d->slot)); // Look for a VLD
     
     if(isvld) {
       
       Nvldfound++;
-      
-      auto vldChannel = isvld->GetChannel();
 
+      auto vldChannelMask = isvld->GetChannelMask();
+      auto vldLoHiBit     = isvld->GetLoHiBit();
+      auto vldConnectorID = isvld->GetConnectorID();
+      
       UInt_t column;
       
-      for( size_t i=0; i<vldChannel.size(); i++ ) {
+      for( size_t i=0; i<vldChannelMask.size(); i++ ) {
 
 	if( d->crate == 10 ) {
-	  column = vldChannel.at(i)/36 + 27 ; 
+	  column = vldConnectorID.at(i) + 27 ; 
 	}
 	else if( d->crate == 11 ) {
-	  column = vldChannel.at(i)/36 + 24 ; 
+	  column = vldConnectorID.at(i) + 24 ; 
 	}
 	else if( d->crate == 14 )
-	  column = vldChannel.at(i)/36 + ( 3 * (d->slot - 13) ); 
+	  column = vldConnectorID.at(i) + ( 3 * (d->slot - 13) ); 
 	
-	fVLDRow.push_back( vldChannel.at(i)%36 );
+	if( vldLoHiBit.at(i) == 0 )
+	  fVLDLoChannelMask.push_back( vldChannelMask.at(i) );
+	else if( vldLoHiBit.at(i) == 1 )
+	  fVLDHiChannelMask.push_back( vldChannelMask.at(i) );
 	fVLDColumn.push_back( column );
 	
       }
@@ -654,7 +667,7 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
   //  cout << "Nhits=" << nhits << endl;
   return nhits;
 
-  return 0;
+  //  return 0;
 }
 
 //_____________________________________________________________________________

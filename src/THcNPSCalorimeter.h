@@ -127,7 +127,8 @@ protected:
   static const Int_t fnVLD = 10;
   Int_t fVLDErrorFlag;
 
-  std::vector<UInt_t> fVLDRow;
+  std::vector<UInt_t> fVLDLoChannelMask;
+  std::vector<UInt_t> fVLDHiChannelMask;
   std::vector<UInt_t> fVLDColumn;
 
   //C.Y. Feb 22, 2021 : Added output filestream for the purpose of
