@@ -609,12 +609,19 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 	else if( d->crate == 14 )
 	  column = vldConnectorID.at(i) + ( 3 * (d->slot - 13) ); 
 	
-	if( vldLoHiBit.at(i) == 0 )
-	  fVLDLoChannelMask.push_back( vldChannelMask.at(i) );
-	else if( vldLoHiBit.at(i) == 1 )
-	  fVLDHiChannelMask.push_back( vldChannelMask.at(i) );
-	fVLDColumn.push_back( column );
+	if( vldChannelMask.at(i) == 0 ) continue;
 	
+	if( vldLoHiBit.at(i) == 0 ) {
+	  fVLDLoChannelMask.push_back( vldChannelMask.at(i) );
+	  fVLDColumn.push_back( column );
+	}
+	else if( vldLoHiBit.at(i) == 1 ) {
+	  fVLDHiChannelMask.push_back( vldChannelMask.at(i) );
+	  fVLDColumn.push_back( column );
+	}
+	else 
+	  fVLDErrorFlag = 1;
+
       }
     }
   }
