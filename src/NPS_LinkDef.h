@@ -14,5 +14,6 @@
 #pragma link C++ class THcNPSCoinTime+;
 #pragma link C++ class Decoder::VTPModule+;
 #pragma link C++ class Decoder::VLDModule+;
+#pragma link C++ class THcNPSTrackInfo+;
 
 #endif

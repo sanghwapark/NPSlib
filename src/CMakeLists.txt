@@ -20,6 +20,7 @@ set(src
   THcNPSCoinTime.cxx
   VTPModule.cxx
   VLDModule.cxx
+  THcNPSTrackInfo.cxx
   )
 
 # Headers
