@@ -769,6 +769,7 @@ void THcNPSCalorimeter::ClusterHits(THcNPSShowerHitSet& HitSet,
   for (THcNPSShowerClusterListIt ppcl = (*ClusterList).begin(); 
        ppcl != (*ClusterList).end(); ++ppcl) {
     THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
+    cls.SetSize( (*ppcl)->size() ); // add cluster size
     fClusters.push_back(cls);
 
     fClusterX.push_back(cls.X());
@@ -1180,6 +1181,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
   for (THcNPSShowerClusterListIt ppcl = (*ClusterList).begin(); 
        ppcl != (*ClusterList).end(); ++ppcl) {
     THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
+    cls.SetSize( (*ppcl)->size() ); // add cluster size
     fClusters.push_back(cls);
 
     fClusterX.push_back(cls.X());

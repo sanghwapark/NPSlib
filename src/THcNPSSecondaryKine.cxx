@@ -195,6 +195,7 @@ Int_t THcNPSSecondaryKine::Process( const THaEvData& )
 	ClusterMaxE = cluster.E();
 	// vertex correction and get P vector
 	cluster.RotateToLab(fNPSAngle, vertex, pvect);
+	if( vertex.Mag() < 1.e-38 ) cluster.SetVertexFlag(false);
       }
 
   // 4-momentum of X

@@ -31,12 +31,13 @@ class THcNPSCluster : public THaCluster {
   Double_t   GetTheta()                 { return fPvect.Theta(); } // in lab frame
   Double_t   GetPhi()                   { return fPvect.Phi(); }   // in lab frame
   Double_t   GetP()               const { return fP; }
-
+  Int_t      GetSize()            const { return fSize; } // cluster size
+  void       SetSize(Int_t nhits)            { fSize = nhits; } // cluster size
+  void       SetVertexFlag(bool vertex_flag) { fHasVertex = vertex_flag; }
   void       SetEnergy(Double_t energy)      { fE = energy; }
   void       SetTime(Double_t time)          { fT = time; }
   void       SetMomentum( Double_t p )       { fP = p; }
   void       SetPvect(const TVector3& pvect) { fPvect = pvect; }
-
   void       SetVertex(const TVector3& vertex) 
   { fVertex = vertex; fHasVertex = true; }
   void       SetVertex(Double_t vx, Double_t vy, Double_t vz) 
@@ -51,6 +52,7 @@ class THcNPSCluster : public THaCluster {
   TVector3 fVertex;     // vertex information from other spectrometer
   TVector3 fPvect;      // momentum vector
   TVector3 fCenterLab;  
+  Int_t    fSize;       // Cluster size
 
   ClassDef(THcNPSCluster,0)
 

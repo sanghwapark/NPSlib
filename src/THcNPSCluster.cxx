@@ -46,21 +46,21 @@ void THcNPSCluster::RotateToLab(Double_t angle, TVector3& vertex, TVector3& pvec
 {
   // Set vertex vector
   fVertex = vertex;
-  fHasVertex = true;
 
   // Rotate along y-axis, correct for vertex
-  Double_t x_lab = fCenter.X()*cos(angle)  + fCenter.Z()*sin(angle) - vertex.X();
-  Double_t y_lab = fCenter.Y() - vertex.Y();
-  Double_t z_lab = -fCenter.X()*sin(angle) + fCenter.Z()*cos(angle) - vertex.Z();
+  Double_t x_lab = fCenter.X()*cos(angle)  + fCenter.Z()*sin(angle) - fVertex.X();
+  Double_t y_lab = fCenter.Y() - fVertex.Y();
+  Double_t z_lab = -fCenter.X()*sin(angle) + fCenter.Z()*cos(angle) - fVertex.Z();
 
   TVector3 rvect(x_lab, y_lab, z_lab);
   Double_t th = rvect.Theta();
   Double_t ph = rvect.Phi();
   
   fCenterLab = rvect;
-  pvect.SetXYZ(fE * cos(th) * sin(ph),
-	       fE * sin(th) * sin(ph),
-	       fE * cos(ph));
+  // TVector3: phi is polar angle and theta is azimuth
+  pvect.SetXYZ(fE * cos(ph) * sin(th),
+	       fE * sin(ph) * sin(th),
+	       fE * cos(th));
   
   fPvect = pvect;
 }
