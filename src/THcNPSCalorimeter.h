@@ -130,6 +130,8 @@ protected:
   std::vector<UInt_t> fVLDLoChannelMask;
   std::vector<UInt_t> fVLDHiChannelMask;
   std::vector<UInt_t> fVLDColumn;
+  std::vector<UInt_t> fVLDRow;
+  std::vector<UInt_t> fVLDPMT;
 
   //C.Y. Feb 22, 2021 : Added output filestream for the purpose of
   //writing to file (and plotting a 2D grid of) the blocks

@@ -406,6 +406,8 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
     { "vldLoChannelMask", "VLD lo channel mask",      "fVLDLoChannelMask" },
     { "vldHiChannelMask", "VLD hi channel mask",      "fVLDHiChannelMask" },
     { "vldColumn",        "VLD column",               "fVLDColumn"        },
+    { "vldRow",           "VLD row",                  "fVLDRow"        },
+    { "vldPMT",           "VLD PMT",                  "fVLDPMT"        },
     { 0 }
   };
 
@@ -511,6 +513,8 @@ void THcNPSCalorimeter::Clear(Option_t* opt)
   fVLDLoChannelMask.clear();
   fVLDHiChannelMask.clear();
   fVLDColumn.clear();
+  fVLDRow.clear();
+  fVLDPMT.clear();
 
 }
 
@@ -596,34 +600,47 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
       auto vldLoHiBit     = isvld->GetLoHiBit();
       auto vldConnectorID = isvld->GetConnectorID();
       
-      UInt_t column;
-      
-      for( size_t i=0; i<vldChannelMask.size(); i++ ) {
+      UInt_t column, pmt;
 
-	if( d->crate == 10 ) {
-	  column = vldConnectorID.at(i) + 27 ; 
-	}
-	else if( d->crate == 11 ) {
-	  column = vldConnectorID.at(i) + 24 ; 
-	}
-	else if( d->crate == 14 )
-	  column = vldConnectorID.at(i) + ( 3 * (d->slot - 13) ); 
+      for(size_t i=0; i<vldChannelMask.size(); i++ ) {
 	
 	if( vldChannelMask.at(i) == 0 ) continue;
-	
-	if( vldLoHiBit.at(i) == 0 ) {
-	  fVLDLoChannelMask.push_back( vldChannelMask.at(i) );
-	  fVLDColumn.push_back( column );
-	}
-	else if( vldLoHiBit.at(i) == 1 ) {
-	  fVLDHiChannelMask.push_back( vldChannelMask.at(i) );
-	  fVLDColumn.push_back( column );
-	}
-	else 
-	  fVLDErrorFlag = 1;
 
+	if( Nvldfound == 1 )
+	  column = vldConnectorID.at(i) + 27 ; 
+	else if( Nvldfound == 2 )
+	  column = vldConnectorID.at(i) + 24 ; 
+	else if( Nvldfound >= 3 && Nvldfound <= 10  )
+	  column = vldConnectorID.at(i) + (3 * i/8); 
+	else{
+	  cout << "THcNPSCalorimeter VLD decode error: Found " << Nvldfound << " VLD modules. There should be " << fnVLD << endl;
+	  fVLDErrorFlag = 1;
+	}
+
+	if( Nvldfound >= 4 && Nvldfound <= 10  ) continue; 
+	
+	for( int row=0; row<18; row++) { 
+	  
+	  if( TESTBIT(vldChannelMask.at(i), row) ) { 
+
+	    if( vldLoHiBit.at(i) == 0 ) {
+	      fVLDLoChannelMask.push_back( vldChannelMask.at(i) );
+	      fVLDRow.push_back( row );
+	    }
+	    
+	    if( vldLoHiBit.at(i) == 1 ) {
+	      fVLDHiChannelMask.push_back( vldChannelMask.at(i) );
+	      fVLDRow.push_back( (row + 18) );
+	    }
+
+	    fVLDColumn.push_back( column );
+	    fVLDPMT.push_back( column + (30*row) );
+	    
+	  }
+	}
       }
     }
+
   }
   
   if( Nvtpfound > fnVTP ) {
@@ -631,8 +648,6 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
     fVTPErrorFlag = 1;
   }
   if( Nvldfound > fnVLD ) {
-    cout << "THcNPSCalorimeter VLD decode error: Found " << Nvldfound << " VLD modules. There should be " << fnVLD << endl;
-    fVLDErrorFlag = 1;
   }
 
   // Get the Hall C style hitlist (fRawHitList) for this event
