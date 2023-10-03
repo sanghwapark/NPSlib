@@ -48,5 +48,9 @@ The library currently contains the following classes: (Details TODO)
 * `THcNPSCalorimeter`
 * `THcNPSShowerHit`
 * `THcNPSAnalyzer`
+* `THcNPSCluster`
+* `THcNPSSecondaryKine`
+* `THcNPSCoinTime`
 * `Decoder::VTPModule`: Driver for VTP front-end electronics.
+* `Decoder::VLDModule`: Driver for VLD front-end electronics.
 
