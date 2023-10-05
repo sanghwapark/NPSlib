@@ -10,6 +10,8 @@ THcNPSCluster::THcNPSCluster() :
 {
   // Constructor
 
+  fSize = 0;
+
   // Initialize momentum and vertex vectors
   fPvect.SetXYZ(0., 0., 0.);
   fVertex.SetXYZ(0., 0., 0.);
@@ -39,6 +41,9 @@ void THcNPSCluster::Clear( Option_t* )
   fCenterLab.SetXYZ( kBig, kBig, kBig);
   fHasVertex = false;
   fE = fT = fP = kBig;
+  fBlocks.clear();
+  fSize = 0;
+
 }
 
 //______________________________________________________

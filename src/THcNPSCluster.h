@@ -21,6 +21,9 @@ class THcNPSCluster : public THaCluster {
   // Coordinate transformation from detector plane to lab
   virtual void RotateToLab(Double_t angle, TVector3& vertex, TVector3& pvect);
 
+  void  AddBlock(Int_t blockID) { fBlocks.push_back(blockID); fSize = fBlocks.size(); }
+  std::vector<Int_t> GetBlocks() { return fBlocks; }
+
   // Getter/Setter functions
   bool       HasVertex()          const { return fHasVertex; }
   Double_t   E()                  const { return fE; }
@@ -45,14 +48,16 @@ class THcNPSCluster : public THaCluster {
 
  protected:
 
-  Double_t fE;          // Cluster energy deposit
-  Double_t fT;          // Cluster time
-  Double_t fP;          // momentum
-  bool     fHasVertex;   
-  TVector3 fVertex;     // vertex information from other spectrometer
-  TVector3 fPvect;      // momentum vector
-  TVector3 fCenterLab;  
-  Int_t    fSize;       // Cluster size
+  Double_t fE;           // Cluster energy deposit
+  Double_t fT;           // Cluster time
+  Double_t fP;           // momentum
+  bool     fHasVertex;    
+  TVector3 fVertex;      // vertex information from other spectrometer
+  TVector3 fPvect;       // momentum vector
+  TVector3 fCenterLab;   
+  Int_t    fSize;        // Cluster size
+			 
+  std::vector<Int_t> fBlocks; // Blocks
 
   ClassDef(THcNPSCluster,0)
 

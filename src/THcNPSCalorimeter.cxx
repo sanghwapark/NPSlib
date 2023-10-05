@@ -384,7 +384,7 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
   // Register variables in global list
 
   RVarDef vars[] = {
-    { "nhits",        "Number of hits",                             "fNhits" },
+    { "nhits",        "(Total) Number of good hits",                "fNhits" },
     { "nclust",       "Number of layer clusters",                   "fNclust" },
     { "etot",         "Total energy",                               "fEtot" },
     { "clusX",        "Cluster x coordinate",                       "fClusterX" },
@@ -392,6 +392,7 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
     { "clusZ",        "Cluster z coordinate",                       "fClusterZ" },
     { "clusT",        "Cluster time",                               "fClusterT" },
     { "clusE",        "Cluster energy",                             "fClusterE" },
+    { "clusSize",     "Cluster size",                               "fClusters.fSize" },
     { "vtpErrorFlag", "VTP error flag",           "fVTPErrorFlag"     },
     { "vtpTrigTime",  "VTP trigger time",         "fVTPTriggerTime"   },
     { "vtpTrigType0", "VTP trigger type0 bit",    "fVTPTriggerType0"  },
@@ -739,6 +740,8 @@ void THcNPSCalorimeter::ClusterHits(THcNPSShowerHitSet& HitSet,
   // of hits are saved in the ClusterList.
 
   //cout << "HitSet Size = " <<  HitSet.size() << endl;
+  fNhits = HitSet.size();
+
   while (HitSet.size() != 0) {
 
     THcNPSShowerCluster* cluster = new THcNPSShowerCluster;
@@ -784,7 +787,12 @@ void THcNPSCalorimeter::ClusterHits(THcNPSShowerHitSet& HitSet,
   for (THcNPSShowerClusterListIt ppcl = (*ClusterList).begin(); 
        ppcl != (*ClusterList).end(); ++ppcl) {
     THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
-    cls.SetSize( (*ppcl)->size() ); // add cluster size
+
+    // Add block IDs for the cluster
+    for(THcNPSShowerClusterIt pph=(*ppcl)->begin(); pph!=(*ppcl)->end(); ++pph) {
+      cls.AddBlock( (*pph)->hitID() );
+    }
+
     fClusters.push_back(cls);
 
     fClusterX.push_back(cls.X());
@@ -854,6 +862,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     and can be used to understand how the algorithm contaminates other blocks based on a central virus block.
   */
 
+  fNhits = HitSet.size();
     
   //********************************************
   // PHASE 1 PREP: ARRAY/VECTORS INITIALIZATION
@@ -879,7 +888,6 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     blk_hit_idx[ielem]=-1;
   }
   
-  
   //---------TESTING: ASSIGN PULSE INT USING HIT SET-------
   //Loop over ALL Hit blocks
   for (THcNPSShowerHitIt ihit=HitSet.begin(); ihit!=HitSet.end(); ++ihit) {
@@ -891,7 +899,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     
     //Set hit block index
     blk_hit_idx[ (*ihit)->hitID() ] = fNbBlocks;
-    
+
     //increment hit block counter
     fNbBlocks++;
     
@@ -927,7 +935,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     //If at a corner (only 3 neighboring blocks) and if at an edge (only 5 neighboring blocks)
     for(Int_t k=0;k<8;k++){
 
-      // cout<< "(k-index, Neighbor Block ID) = " << k << ", " <<  fArray->GetNeighbor(good_blk_id[j], k)  << endl; 
+      //cout<< "(k-index, Neighbor Block ID) = " << k << ", " <<  fArray->GetNeighbor(good_blk_id[j], k)  << endl; 
 
       //Check if kth neighbor block exists (is physically real) and  was actually hit (has good pulse integral)
       //if( fArray->GetNeighbor(good_blk_id[j], k)!=-1  && blk_pulseInt[ fArray->GetNeighbor(good_blk_id[j], k) ]>0 ){
@@ -1088,7 +1096,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
 	//Here is where the j-th hit block (that was not ill) is tagged' with the neighboring block highest pulseInt
 	pIpastmp[ good_blk_id[j] ]=max;  
 
-	// cout << "Neighbor w/ Highest Pulse Int | (Block Hit Index, PulseInt) =  " << virus_blk << ", " << max << endl;
+	//cout << "Neighbor w/ Highest Pulse Int | (Block Hit Index, PulseInt) =  " << good_blk_id[j] << " " << virus_blk << ", " << max << endl;
 	//Check if the found neighboring block (virus_blk) with the highest pulse Integral has been previously tagged as a virus 
 	if(virus[virus_blk]){
 
@@ -1196,7 +1204,12 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
   for (THcNPSShowerClusterListIt ppcl = (*ClusterList).begin(); 
        ppcl != (*ClusterList).end(); ++ppcl) {
     THcNPSCluster cls(clX(*ppcl), clY(*ppcl), clZ(*ppcl), clT(*ppcl), clE(*ppcl));
-    cls.SetSize( (*ppcl)->size() ); // add cluster size
+
+    // Add block IDs for the cluster
+    for(THcNPSShowerClusterIt pph=(*ppcl)->begin(); pph!=(*ppcl)->end(); ++pph) {
+      cls.AddBlock( (*pph)->hitID() );
+    }
+
     fClusters.push_back(cls);
 
     fClusterX.push_back(cls.X());
