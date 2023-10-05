@@ -677,9 +677,9 @@ Int_t THcNPSArray::CoarseProcess(TClonesArray& tracks)
   
   // Check that block id k computed correct for NPS
   UInt_t k=0;
-  for(UInt_t j=0; j < fNColumns; j++) {
-    for (UInt_t i=0; i<fNRows; i++) {
-
+  for (UInt_t i=0; i<fNRows; i++) {
+    for(UInt_t j=0; j < fNColumns; j++) {
+      
       if (fGoodAdcPulseInt.at(k) > 0) {    //hit
 
 	THcNPSShowerHit* hit =
@@ -688,7 +688,7 @@ Int_t THcNPSArray::CoarseProcess(TClonesArray& tracks)
 	HitSet.insert(hit);
       }
 
-      k++;			// k = j*fNRows + i
+      k++;			// k = i*fNColumns + j
     }
   }
 
@@ -740,7 +740,8 @@ Int_t THcNPSArray::CoarseProcess(TClonesArray& tracks)
     for (THcNPSShowerClusterIt pph=(**ppcl).begin(); pph!=(**ppcl).end();
 	   ++pph) {
       //C.Y. Feb 09, 2021: I believe a +1 is not necessary if block numbering starts at zero (simply, "block = column * fNRows + Row" will do)
-      block = ((**pph).hitColumn())*fNRows + (**pph).hitRow(); //+1; 
+      //      block = ((**pph).hitColumn())*fNRows + (**pph).hitRow(); //+1; 
+      block = ((**pph).hitRow())*fNColumns + (**pph).hitColumn(); //+1; 
       if (block >=0 && block < fNelem)  fBlock_ClusterID[block] = ncl;
       }
       ncl++;
@@ -813,16 +814,17 @@ Int_t THcNPSArray::CoarseProcessHits()
 
     Int_t nspar = 0;
     Int_t k=0;
-    for(UInt_t j=0; j < fNColumns; j++) {
     for (UInt_t i=0; i<fNRows; i++) {
-      if(fGoodAdcPulseIntRaw.at(k) > fThresh[k]) {
-	cout << "  counter =  " << k
-	     << "  E = " << fE[k]
-	     << endl;
-	nspar++;
+      for(UInt_t j=0; j < fNColumns; j++) {
+	
+	if(fGoodAdcPulseIntRaw.at(k) > fThresh[k]) {
+	  cout << "  counter =  " << k
+	       << "  E = " << fE[k]
+	       << endl;
+	  nspar++;
+	}
+	k++;
       }
-       k++;
-    }
     }
 
     if (nspar == 0) cout << "  No hits\n";
@@ -1365,7 +1367,7 @@ Int_t THcNPSArray::AccumulateHits(TClonesArray* rawhits, Int_t nexthit, Int_t tr
     for(Int_t row=0;row<fNRows;row++) {
       cout << "|";
       for(Int_t column=0;column<fNColumns;column++) {
-	Int_t counter = column*fNRows + row;
+	Int_t counter = row*fNColumns + column;
 	if(fGoodAdcPulseIntRaw.at(counter) > threshold) {
 	  cout << "X";
 	} else {
@@ -1383,7 +1385,7 @@ Int_t THcNPSArray::AccumulateHits(TClonesArray* rawhits, Int_t nexthit, Int_t tr
 	hitpic[row][0] = '|';
       }
       for(Int_t column=0;column<fNColumns;column++) {
-	Int_t counter = column*fNRows+row;
+	Int_t counter = row*fNColumns + column;
 	if(fGoodAdcPulseIntRaw.at(counter) > threshold) {
 	  hitpic[row][piccolumn*(fNColumns+1)+column+1] = 'X';
 	} else {
@@ -1637,7 +1639,7 @@ std::pair<int, int> THcNPSArray::GetBlockij(Int_t id)
   for (UInt_t irow=0; irow<fNRows; irow++){
     for (UInt_t jcol=0; jcol<fNColumns; jcol++){
 
-      id_tmp = jcol * fNRows + irow;
+      id_tmp = irow * fNColumns + jcol;
 
       //check if block id matches input id
       if(id_tmp == id){
@@ -1665,7 +1667,8 @@ Int_t THcNPSArray::GetBlockID(UInt_t irow, UInt_t jcol)
   //  Int_t fNBlocks = fNRows * fNColumns; //total number of blocks (0 to  fNBlocks-1)
   
   //Calculate the block id based on the (i,j) indices
-  block_id = jcol * fNRows + irow;
+  //  block_id = jcol * fNRows + irow;
+  block_id = irow * fNColumns + jcol;
 
   //Check if input (irow, jcol) is out-of-bounds
   if( irow<0 || irow>=fNRows || jcol<0 || jcol>=fNColumns ){
