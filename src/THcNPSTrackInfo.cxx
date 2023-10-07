@@ -58,7 +58,7 @@ THaAnalysisObject::EStatus THcNPSTrackInfo::Init( const TDatime& run_time )
 
   // Get NPS calorimeter detector
   fNPSCalo = dynamic_cast<THcNPSCalorimeter*>(fSpectro->GetDetector("cal"));
-  fNPSAngle = fSpectro->GetNPSAngle();
+  fNPSAngle = TMath::DegToRad() * fSpectro->GetNPSAngle();
 
   // HMS Vertex Module (ReactionPoint)
   fVertexModule = dynamic_cast<THcReactionPoint*>
