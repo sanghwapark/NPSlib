@@ -907,21 +907,20 @@ void THcNPSArray::FillADC_DynamicPedestal()
 	
 	
 	if(fGoodAdcPulseInt.at(npad)==0) {
-	  
 	  fTotNumGoodAdcHits++;
 	  fGoodAdcPulseInt.at(npad) = pulseInt;
-	  fE.at(npad) = fGoodAdcPulseInt.at(npad)*fGain[npad];
-	  fEarray += fE.at(npad);
-	  
 	  fGoodAdcPed.at(npad) = pulsePed;
 	  fGoodAdcPulseAmp.at(npad) = pulseAmp;
 	  fGoodAdcPulseTime.at(npad) = pulseTime;
 	  fGoodAdcTdcDiffTime.at(npad) = adctdcdiffTime;
 	  
+	  // Gain pararmeter is obtained for amp -> ene conversion
+	  fE.at(npad) = fGoodAdcPulseAmp.at(npad)*fGain[npad];
+	  fEarray += fE.at(npad);
+
 	  fNumGoodAdcHits.at(npad) = npad;// Looks wrong, but is correct. 
 	  // See https://github.com/JeffersonLab/hcana/issues/463
 	  // Not npad+1 here because we number first block as 0
-	  	         
 	}
 	
 	//}
