@@ -892,10 +892,11 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
   //Loop over ALL Hit blocks
   for (THcNPSShowerHitIt ihit=HitSet.begin(); ihit!=HitSet.end(); ++ihit) {
 
-    //fill  vectors
-    blk_pulseInt[ (*ihit)->hitID() ]    =  (*ihit)->hitPI();
+    // fill  vectors
+    // Use energy instead of integral for clustering 10/09/2023 S.P
+    blk_pulseInt[ (*ihit)->hitID() ]    =  (*ihit)->hitE();
     good_blk_id.push_back( (*ihit)->hitID() );
-    good_blk_pulseInt.push_back( (*ihit)->hitPI() );
+    good_blk_pulseInt.push_back( (*ihit)->hitE() );
     
     //Set hit block index
     blk_hit_idx[ (*ihit)->hitID() ] = fNbBlocks;
