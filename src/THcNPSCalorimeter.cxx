@@ -618,7 +618,7 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 	  fVLDErrorFlag = 1;
 	}
 
-	if( Nvldfound >= 4 && Nvldfound <= 10  ) continue; 
+	if( Nvldfound > 3 ) continue; 
 	
 	for( int row=0; row<18; row++) { 
 	  
@@ -627,15 +627,16 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 	    if( vldLoHiBit.at(i) == 0 ) {
 	      fVLDLoChannelMask.push_back( vldChannelMask.at(i) );
 	      fVLDRow.push_back( row );
+	      fVLDPMT.push_back( column + (30*row) );
+	      fVLDColumn.push_back( column );
 	    }
 	    
 	    if( vldLoHiBit.at(i) == 1 ) {
 	      fVLDHiChannelMask.push_back( vldChannelMask.at(i) );
 	      fVLDRow.push_back( (row + 18) );
+	      fVLDPMT.push_back( column + (30*(row+18)) );
+	      fVLDColumn.push_back( column );
 	    }
-
-	    fVLDColumn.push_back( column );
-	    fVLDPMT.push_back( column + (30*row) );
 	    
 	  }
 	}
@@ -647,8 +648,6 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
   if( Nvtpfound > fnVTP ) {
     cout << "THcNPSCalorimeter VTP decode error: Found " << Nvtpfound << " VTP modules. There should be " << fnVTP << endl;
     fVTPErrorFlag = 1;
-  }
-  if( Nvldfound > fnVLD ) {
   }
 
   // Get the Hall C style hitlist (fRawHitList) for this event
