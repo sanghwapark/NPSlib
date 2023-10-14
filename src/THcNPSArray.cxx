@@ -13,6 +13,7 @@
 #include "THcParmList.h"
 #include "THcHitList.h"
 #include "THcNPSCalorimeter.h"
+#include "THcHallCSpectrometer.h"
 #include "THcRawShowerHit.h"
 #include "TClass.h"
 //#include "TSpectrum.h"   // DJH 09/04/22 -- commented out for now
@@ -141,6 +142,15 @@ THcNPSArray::~THcNPSArray()
 THaAnalysisObject::EStatus THcNPSArray::Init( const TDatime& date )
 {
 
+     THcHallCSpectrometer *app = dynamic_cast<THcHallCSpectrometer*>
+      ( FindModule( "H", "THcHallCSpectrometer"));
+
+   if(  !app ||
+      !(fglHod = dynamic_cast<THcHodoscope*>(app->GetDetector("hod"))) ) {
+    static const char* const here = "ReadDatabase()";
+    Warning(Here(here),"Hodoscope \"%s\" not found. ","hod");
+  }
+
   string kwPrefix = GetApparatus()->GetPrefix();
   std::transform(kwPrefix.begin(), kwPrefix.end(), kwPrefix.begin(), ::tolower);
 
@@ -239,7 +249,7 @@ Int_t THcNPSArray::ReadDatabase( const TDatime& date )
 
   fParent = GetParent();
 
-  if (static_cast<THcNPSCalorimeter*>(fParent)->fdbg_init_cal) {
+   if (static_cast<THcNPSCalorimeter*>(fParent)->fdbg_init_cal) {
     cout << "---------------------------------------------------------------\n";
     cout << "Debug output from THcNPSArray::ReadDatabase for "
     	 << GetParent()->GetPrefix() << ":" << endl;
@@ -315,11 +325,12 @@ Int_t THcNPSArray::ReadDatabase( const TDatime& date )
   fAdcPulseTimeMin = new Double_t [fNelem];
   fAdcPulseTimeMax = new Double_t [fNelem];
   fPedDefault = new Int_t [fNelem];
-  
+  Double_t  fAdcTdcOffset_All=0.0;
   DBRequest list1[]={
     {"_cal_arr_ped_limit", fPedLimit, kInt, static_cast<UInt_t>(fNelem),1},
     {"_cal_arr_cal_const", cal_arr_cal_const, kDouble, static_cast<UInt_t>(fNelem)},
     {"_cal_arr_gain_cor",  cal_arr_gain_cor,  kDouble, static_cast<UInt_t>(fNelem)},
+    {"_cal_arr_adc_tdc_offset_all", &fAdcTdcOffset_All, kDouble, 0,1},
     {"_cal_arr_adc_tdc_offset", fAdcTdcOffset, kDouble, static_cast<UInt_t>(fNelem),1},
     {"_cal_arr_AdcTimeWindowMin", fAdcTimeWindowMin, kDouble, static_cast<UInt_t>(fNelem),1},
     {"_cal_arr_AdcTimeWindowMax", fAdcTimeWindowMax, kDouble, static_cast<UInt_t>(fNelem),1},
@@ -357,10 +368,11 @@ Int_t THcNPSArray::ReadDatabase( const TDatime& date )
    fUseSampWaveform = 1; // 0= do not use , 1 = use Sample Waveform
    
    gHcParms->LoadParmValues((DBRequest*)&list1, fKwPrefix.c_str());
-  
+   for(Int_t ip=0;ip<fNelem;ip++) {
+    fAdcTdcOffset[ip] += fAdcTdcOffset_All;
+   }  
   // Debug output.
   if (static_cast<THcNPSCalorimeter*>(fParent)->fdbg_init_cal) {
-
     cout << "  fPedLimit:" << endl;
     Int_t el=0;
     for (UInt_t j=0; j<fNColumns; j++) {
@@ -860,12 +872,9 @@ void THcNPSArray::FillADC_Standard()
 //_____________________________________________________________________________
 void THcNPSArray::FillADC_DynamicPedestal()
 {
-  //C.Y. Feb 07 2021: Eventually, we want to re-define the start time, since NPS does not have hodoscopes. Maybe we can chose
-  //another time as reference?  How about the RF time?  Something to be discussed w/ M. Jones and S. Wood
-  Double_t StartTime = 0.0; 	// Arbitrary time to put tdc in range
+  Double_t StartTime = 50.0; 	// Centriod of the HMS startime during NPS
 
-  //  cout << "THcNPSArray::FillADC_DynamicPed | total # of  hits: " << frAdcPulseInt->GetEntries() << endl;
-  //if( fglHod ) StartTime = fglHod->GetStartTime();
+  if( fglHod ) StartTime = fglHod->GetStartTime();
   
   //Loop over all entries (all hits over all elements (i.e., all hits of all blocks))
   for (Int_t ielem=0;ielem<frAdcPulseInt->GetEntries();ielem++) {  
@@ -877,11 +886,12 @@ void THcNPSArray::FillADC_DynamicPedestal()
     Double_t pulseInt    = ((THcSignalHit*) frAdcPulseInt->ConstructedAt(ielem))->GetData();
     Double_t pulseAmp    = ((THcSignalHit*) frAdcPulseAmp->ConstructedAt(ielem))->GetData();
     Double_t pulseTime   = ((THcSignalHit*) frAdcPulseTime->ConstructedAt(ielem))->GetData();
-    Double_t adctdcdiffTime = pulseTime-StartTime;
+    Double_t adctdcdiffTime = pulseTime-(StartTime-50);
     Bool_t errorflag     = ((THcSignalHit*) frAdcErrorFlag->ConstructedAt(ielem))->GetData();
     Bool_t pulseTimeCut  = (adctdcdiffTime > fAdcTimeWindowMin[npad]) &&  (adctdcdiffTime < fAdcTimeWindowMax[npad]);
 
-    
+    ((THcSignalHit*) frAdcPulseTime->ConstructedAt(ielem))->Set(npad,adctdcdiffTime); 
+    ((THcSignalHit*) frAdcSampPulseTime->ConstructedAt(ielem))->Set(npad,adctdcdiffTime); 
     if (!errorflag)
       {
 	fGoodAdcMult.at(npad) += 1;
@@ -911,7 +921,7 @@ void THcNPSArray::FillADC_DynamicPedestal()
 	  fGoodAdcPulseInt.at(npad) = pulseInt;
 	  fGoodAdcPed.at(npad) = pulsePed;
 	  fGoodAdcPulseAmp.at(npad) = pulseAmp;
-	  fGoodAdcPulseTime.at(npad) = pulseTime;
+	  fGoodAdcPulseTime.at(npad) = pulseTime-(StartTime-50);
 	  fGoodAdcTdcDiffTime.at(npad) = adctdcdiffTime;
 	  
 	  // Gain pararmeter is obtained for amp -> ene conversion
@@ -1857,8 +1867,8 @@ Int_t THcNPSArray::AccumulateStat(TClonesArray& tracks )
     
   }
 
-  if (static_cast<THcNPSCalorimeter*>(fParent)->fdbg_tracks_cal ) {
-    cout << "---------------------------------------------------------------\n";
+   if (static_cast<THcNPSCalorimeter*>(fParent)->fdbg_tracks_cal ) {
+     cout << "---------------------------------------------------------------\n";
     cout << "THcNPSArray::AccumulateStat:" << endl;
     cout << "   Chi2/NDF = " <<BestTrack->GetChi2()/BestTrack->GetNDoF() <<endl;
     //    cout << "   HGCER Npe = " << hgcer->GetCerNPE() << endl;
