@@ -39,6 +39,9 @@ public:
    inline virtual std::vector<UInt_t> GetTriggerType0() { return vtp_trigger_data.trigtype0; }
    inline virtual std::vector<UInt_t> GetTriggerType1() { return vtp_trigger_data.trigtype1; }
    inline virtual std::vector<UInt_t> GetTriggerType2() { return vtp_trigger_data.trigtype2; }
+   inline virtual std::vector<UInt_t> GetTriggerType3() { return vtp_trigger_data.trigtype3; }
+   inline virtual std::vector<UInt_t> GetTriggerType4() { return vtp_trigger_data.trigtype4; }
+   inline virtual std::vector<UInt_t> GetTriggerType5() { return vtp_trigger_data.trigtype5; }
 
    inline virtual std::vector<UInt_t> GetClusterEnergy() { return vtp_cluster_data.energy; }
    inline virtual std::vector<UInt_t> GetClusterTime()   { return vtp_cluster_data.time; }
@@ -59,9 +62,9 @@ public:
    } __attribute__((aligned(128))) vtp_header_data;  
    
    struct vtp_trigger_data_struct {
-     std::vector<uint32_t> trigtime, trigtype0, trigtype1, trigtype2;   
+     std::vector<uint32_t> trigtime, trigtype0, trigtype1, trigtype2, trigtype3, trigtype4, trigtype5;   
      void clear() {
-       trigtime.clear(); trigtype0.clear(); trigtype1.clear(); trigtype2.clear(); 
+       trigtime.clear(); trigtype0.clear(); trigtype1.clear(); trigtype2.clear(); trigtype3.clear(); trigtype4.clear(); trigtype5.clear(); 
      }
    } __attribute__((aligned(128))) vtp_trigger_data;
    

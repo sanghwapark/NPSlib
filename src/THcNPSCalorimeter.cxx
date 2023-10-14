@@ -395,9 +395,13 @@ Int_t THcNPSCalorimeter::DefineVariables( EMode mode )
     { "clusSize",     "Cluster size",                               "fClusters.fSize" },
     { "vtpErrorFlag", "VTP error flag",           "fVTPErrorFlag"     },
     { "vtpTrigTime",  "VTP trigger time",         "fVTPTriggerTime"   },
-    { "vtpTrigType0", "VTP trigger type0 bit",    "fVTPTriggerType0"  },
-    { "vtpTrigType1", "VTP trigger type1 bit",    "fVTPTriggerType1"  },
-    { "vtpTrigType2", "VTP trigger type2 bit",    "fVTPTriggerType2"  },
+    { "vtpTrigCrate",  "VTP trigger crate",         "fVTPTriggerCrate"   },
+    { "vtpTrigType0", "VTP trigger cluster singles",    "fVTPTriggerType0"  },
+    { "vtpTrigType1", "VTP trigger cosmic scin",    "fVTPTriggerType1"  },
+    { "vtpTrigType2", "VTP trigger cosmic col",    "fVTPTriggerType2"  },
+    { "vtpTrigType3", "VTP trigger cluster pair different crate",    "fVTPTriggerType3"  },
+    { "vtpTrigType4", "VTP trigger cluster pair same crate",    "fVTPTriggerType4"  },
+    { "vtpTrigType5", "VTP trigger VLD",    "fVTPTriggerType5"  },
     { "vtpClusTime",  "VTP cluster time",         "fVTPClusterTime"   },
     { "vtpClusE",     "VTP cluster energy",       "fVTPClusterEnergy" },
     { "vtpClusSize",  "VTP cluster n blocks",     "fVTPClusterSize"   },
@@ -534,29 +538,44 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
   // Should move this up to the apparatus level.
 
   // DJH: decode VTP and VLD here (for now)
-
+  // cout << " event = " << evdata.GetEvNum() << endl;
   Int_t Nvtpfound = 0;
   Int_t Nvldfound = 0;
-  
+  fVTPTriggerTime.clear();  
+  fVTPTriggerCrate.clear();  
+  fVTPTriggerType0.clear();  
+  fVTPTriggerType1.clear();  
+ fVTPTriggerType2.clear();  
+ fVTPTriggerType3.clear();  
+ fVTPTriggerType4.clear();  
+ fVTPTriggerType5.clear();  
   for (UInt_t i=0; i < fDetMap->GetSize(); i++) { 
 
     THaDetMap::Module* d = fDetMap->GetModule(i);
 
      Decoder::VTPModule* isvtp = dynamic_cast<Decoder::VTPModule*>(evdata.GetModule(d->crate, d->slot)); // Look for a VTP
-
-    if(isvtp) {
+     if(isvtp) {
       Nvtpfound++;
+      Int_t crate_num= d->crate;
       if(  evdata.GetEvNum() != isvtp->GetTriggerNum() ) {
-	cout << "THcNPSCalorimeter VTP data synch error: THaEvData = " << evdata.GetEvNum() << ", VTP decoder = "<< isvtp->GetTriggerNum() 
-	     << " for VTP in crate" << d->crate <<  endl;
+	//	cout << "THcNPSCalorimeter VTP data synch error: THaEvData = " << evdata.GetEvNum() << ", VTP decoder = "<< isvtp->GetTriggerNum()      << " for VTP in crate" << d->crate <<  endl;
 	fVTPErrorFlag = 1;
       }
       else {
+	//cout << " vtp crate = " << d->crate << " slot = " <<  d->slot << endl;
+	// cout << " vtp found  = " << Nvtpfound << endl;
 	if( Nvtpfound == 1 ) {
 	  fVTPTriggerTime  = isvtp->GetTriggerTime();
+	  for ( UInt_t nn=0 ; nn < fVTPTriggerTime.size(); nn++) {
+	  fVTPTriggerCrate.push_back(crate_num);
+	  }
 	  fVTPTriggerType0 = isvtp->GetTriggerType0();
 	  fVTPTriggerType1 = isvtp->GetTriggerType1();
 	  fVTPTriggerType2 = isvtp->GetTriggerType2();
+	  fVTPTriggerType3 = isvtp->GetTriggerType3();
+	  fVTPTriggerType4 = isvtp->GetTriggerType4();
+	  fVTPTriggerType5 = isvtp->GetTriggerType5();
+	  //	  cout << " fVTPTriggerType0 = " << fVTPTriggerType0[0]<< " fVTPTriggerType1 = " << fVTPTriggerType1[0]<< " fVTPTriggerType2 = " << fVTPTriggerType2[0]<< " fVTPTriggerType3 = " << fVTPTriggerType3[0]<< " fVTPTriggerType4 = " << fVTPTriggerType4[0] << " fVTPTriggerType5 = " << fVTPTriggerType5[0] << endl;
 	  
 	  fVTPClusterTime   = isvtp->GetClusterTime();
 	  fVTPClusterEnergy = isvtp->GetClusterEnergy();
@@ -565,16 +584,31 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 	  fVTPClusterY      = isvtp->GetClusterY();
 	}
 	else {
-
+	  /* Triggertype#
+	  0 - production singles
+          1 - cosmic scintillator
+	  2 - cosmic column
+	  3 - pair threshold (1 cluster in crate)
+	  4 - pair threshold (2 cluster in same crate)
+	  5 - vld
+	  */
 	  auto temp1 = isvtp->GetTriggerTime();
-	  fVTPTriggerTime.insert( fVTPTriggerTime.end(), temp1.begin(), temp1.end() );   
+	  fVTPTriggerTime.insert( fVTPTriggerTime.end(), temp1.begin(), temp1.end() ); 
+	  for ( UInt_t nn=0 ; nn < temp1.size(); nn++) {
+	  fVTPTriggerCrate.push_back(crate_num);
+	  }
 	  auto temp2 = isvtp->GetTriggerType0();
 	  fVTPTriggerType0.insert( fVTPTriggerType0.end(), temp2.begin(), temp2.end() );   
 	  auto temp3 = isvtp->GetTriggerType1();
 	  fVTPTriggerType1.insert( fVTPTriggerType1.end(), temp3.begin(), temp3.end() );   
 	  auto temp4 = isvtp->GetTriggerType2();
 	  fVTPTriggerType2.insert( fVTPTriggerType2.end(), temp4.begin(), temp4.end() );   
-
+	  auto temp44= isvtp->GetTriggerType3();
+	  fVTPTriggerType3.insert( fVTPTriggerType3.end(), temp44.begin(), temp44.end() );   
+	  auto temp45= isvtp->GetTriggerType4();
+	  fVTPTriggerType4.insert( fVTPTriggerType4.end(), temp45.begin(), temp45.end() );   
+	  auto temp46= isvtp->GetTriggerType5();
+	  fVTPTriggerType5.insert( fVTPTriggerType5.end(), temp46.begin(), temp46.end() );
 	  auto temp5 = isvtp->GetClusterTime();
 	  fVTPClusterTime.insert( fVTPClusterTime.end(), temp5.begin(), temp5.end() );   
 	  auto temp6 = isvtp->GetClusterEnergy();
@@ -587,7 +621,12 @@ Int_t THcNPSCalorimeter::Decode( const THaEvData& evdata )
 	  fVTPClusterY.insert( fVTPClusterY.end(), temp9.begin(), temp9.end() );   
 
 	}
-
+	/*
+	  cout << " size = " << fVTPTriggerTime.size() << endl;
+	  for ( Int_t nn=0;nn<fVTPTriggerTime.size();nn++) {
+	    cout << " nn = " << nn << "FVTPtriggerType0 = " << fVTPTriggerType0[nn] << " VTPTriggerType1 = " << fVTPTriggerType1[nn]<< " fVTPTriggerType2 = " << fVTPTriggerType2[nn]<< " fVTPTriggerType3 = " << fVTPTriggerType3[nn]<< " fVTPTriggerType4 = " << fVTPTriggerType4[nn] << " fVTPTriggerType5 = " << fVTPTriggerType5[nn] << endl;
+	  }
+	*/
       }
     }
 

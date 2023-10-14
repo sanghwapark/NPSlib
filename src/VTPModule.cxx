@@ -191,6 +191,9 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
     uint32_t ttype0   = 0;
     uint32_t ttype1   = 0;
     uint32_t ttype2   = 0;
+    uint32_t ttype3   = 0;
+    uint32_t ttype4   = 0;
+    uint32_t ttype5   = 0;
     
     if( data_type_id ) {  // trigger decision word 1
       
@@ -200,10 +203,17 @@ void VTPModule::DecodeTriggerTime( UInt_t pdat, uint32_t data_type_id )
       if( (tpattern >> 0 ) & 0x1 ) ttype0 = 1;
       if( (tpattern >> 1 ) & 0x1 ) ttype1 = 1;
       if( (tpattern >> 2 ) & 0x1 ) ttype2 = 1;
-      
+      if( (tpattern >> 3 ) & 0x1 ) ttype3 = 1;
+      if( (tpattern >> 4 ) & 0x1 ) ttype4 = 1;
+      if( (tpattern >> 5 ) & 0x1 ) ttype5 = 1;
+
+      //      cout << " tpattern = " << tpattern << endl;
       vtp_trigger_data.trigtype0.push_back( ttype0 );
       vtp_trigger_data.trigtype1.push_back( ttype1 );
       vtp_trigger_data.trigtype2.push_back( ttype2 );
+      vtp_trigger_data.trigtype3.push_back( ttype3 );
+      vtp_trigger_data.trigtype4.push_back( ttype4 );
+      vtp_trigger_data.trigtype5.push_back( ttype5 );
       vtp_trigger_data.trigtime.push_back( ttime );
     }
     
@@ -375,7 +385,6 @@ Int_t VTPModule::Decode( const UInt_t* pdat )
     *fDebugFile << "**********************************************************************"
                 << "\n" << endl;
 #endif
-  
   return block_trailer_found;
 }
 

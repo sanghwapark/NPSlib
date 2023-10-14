@@ -113,9 +113,13 @@ protected:
   static const Int_t fnVTP = 5;
   Int_t fVTPErrorFlag;
   std::vector<UInt_t> fVTPTriggerTime;
+  std::vector<Int_t> fVTPTriggerCrate;
   std::vector<UInt_t> fVTPTriggerType0;
   std::vector<UInt_t> fVTPTriggerType1;
   std::vector<UInt_t> fVTPTriggerType2;
+  std::vector<UInt_t> fVTPTriggerType3;
+  std::vector<UInt_t> fVTPTriggerType4;
+  std::vector<UInt_t> fVTPTriggerType5;
 
   std::vector<UInt_t> fVTPClusterEnergy;
   std::vector<UInt_t> fVTPClusterTime;
