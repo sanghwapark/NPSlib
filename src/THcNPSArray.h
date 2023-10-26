@@ -240,6 +240,7 @@ protected:
   Double_t fMatchClY;
   Double_t fMatchClMaxEnergyBlock;
   Double_t fClustSize;
+  Bool_t   fHodoscope_found;
 
   THcNPSShowerClusterList* fClusterList;   // List of hit clusters
 

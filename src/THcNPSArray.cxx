@@ -144,9 +144,10 @@ THaAnalysisObject::EStatus THcNPSArray::Init( const TDatime& date )
 
      THcHallCSpectrometer *app = dynamic_cast<THcHallCSpectrometer*>
       ( FindModule( "H", "THcHallCSpectrometer"));
-
+     fHodoscope_found = kTRUE;
    if(  !app ||
       !(fglHod = dynamic_cast<THcHodoscope*>(app->GetDetector("hod"))) ) {
+     fHodoscope_found = kFALSE;
     static const char* const here = "ReadDatabase()";
     Warning(Here(here),"Hodoscope \"%s\" not found. ","hod");
   }
@@ -874,7 +875,7 @@ void THcNPSArray::FillADC_DynamicPedestal()
 {
   Double_t StartTime = 50.0; 	// Centriod of the HMS startime during NPS
 
-  if( fglHod ) StartTime = fglHod->GetStartTime();
+  if(fHodoscope_found) StartTime = fglHod->GetStartTime();
   
   //Loop over all entries (all hits over all elements (i.e., all hits of all blocks))
   for (Int_t ielem=0;ielem<frAdcPulseInt->GetEntries();ielem++) {  
