@@ -157,6 +157,7 @@ protected:
   static const Int_t kADCDynamicPedestal=1;
   static const Int_t kADCSampleIntegral=2;
   static const Int_t kADCSampIntDynPed=3;
+  Double_t fClusterTimeWindow;
   Double_t fAdcTdcOffset;
 
   Int_t fAnalyzePedestals;   // Flag for pedestal analysis.

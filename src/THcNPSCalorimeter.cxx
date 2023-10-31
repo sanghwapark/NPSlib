@@ -239,6 +239,7 @@ Int_t THcNPSCalorimeter::ReadDatabase( const TDatime& date )
       {"_cal_fv_test", &fvTest, kInt,0,1},
       {"_cal_fv_delta", &fvDelta, kDouble,0,1},
       {"_cal_ADCMode", &fADCMode, kInt, 0, 1},
+      {"_cal_cluster_time_window", &fClusterTimeWindow, kDouble, 0, 1},
       {"_cal_adc_tdc_offset", &fAdcTdcOffset, kDouble, 0, 1},
       {"_dbg_raw_cal", &fdbg_raw_cal, kInt, 0, 1},
       {"_dbg_decoded_cal", &fdbg_decoded_cal, kInt, 0, 1},
@@ -257,6 +258,7 @@ Int_t THcNPSCalorimeter::ReadDatabase( const TDatime& date )
     fdbg_clusters_cal = 0;
     fdbg_tracks_cal = 0;
     fdbg_init_cal = 0;
+    fClusterTimeWindow = 40.0; //Cluster time window set to +-40.0ns from cluster time
     fAdcTdcOffset=0.0;
     fADCMode=kADCDynamicPedestal;
     gHcParms->LoadParmValues((DBRequest*)&list, fKwPrefix.c_str());
@@ -912,6 +914,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
 
   //Define vectors to store hit blocks info
   vector<Double_t> blk_pulseInt(fNelem, -1);        //store max pulse integral for ALL blocks (by default, is -1 for all elements)
+  vector<Double_t> blk_pulseTime(fNelem, -1);       //store pulse time of largest pulse for ALL blocks (by default, is -1 for all elements)
   vector<Int_t>    good_blk_id;                     //store block id that was hit (variable-size), specifies (index hit, block_id hit)
   vector<Double_t> good_blk_pulseInt;               //store max pulse integral per block hit (if there are multiple hits) (index hit, max pulse Int)
 
@@ -933,6 +936,7 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
     // fill  vectors
     // Use energy instead of integral for clustering 10/09/2023 S.P
     blk_pulseInt[ (*ihit)->hitID() ]    =  (*ihit)->hitE();
+    blk_pulseTime[ (*ihit)->hitID() ]    =  (*ihit)->hitT();
     good_blk_id.push_back( (*ihit)->hitID() );
     good_blk_pulseInt.push_back( (*ihit)->hitE() );
     
@@ -976,9 +980,9 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
 
       //cout<< "(k-index, Neighbor Block ID) = " << k << ", " <<  fArray->GetNeighbor(good_blk_id[j], k)  << endl; 
 
-      //Check if kth neighbor block exists (is physically real) and  was actually hit (has good pulse integral)
+      //Check if kth neighbor block exists (is physically real) and  was actually hit
       //if( fArray->GetNeighbor(good_blk_id[j], k)!=-1  && blk_pulseInt[ fArray->GetNeighbor(good_blk_id[j], k) ]>0 ){
-       if( fArray->GetNeighbor(good_blk_id[j], k)!=-1  && blk_hit_idx[ fArray->GetNeighbor(good_blk_id[j], k) ]!=-1 ){
+      if( fArray->GetNeighbor(good_blk_id[j], k)!=-1  && blk_hit_idx[ fArray->GetNeighbor(good_blk_id[j], k) ]!=-1 ) {
 
 	 // cout<< "Valid Neighbor Found : (k-index, Neighbor Block ID, pulseInt) = " << k << ", " <<  fArray->GetNeighbor(good_blk_id[j], k)  << ", " << blk_pulseInt[ fArray->GetNeighbor(good_blk_id[j], k) ] << endl; 
 
@@ -1103,8 +1107,9 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
 
 	  //cout<< "(k-index, Neighbor Block ID) = " << k << ", " <<  fArray->GetNeighbor(good_blk_id[j], k)  << endl;
 	  
-	  //Check if kth neighbor block exists (is physically real) and  was actually hit (has good pulse integral)
-	  if( fArray->GetNeighbor(good_blk_id[j], k)!=-1  && blk_hit_idx[ fArray->GetNeighbor(good_blk_id[j], k) ]!=-1 ){
+	  //Check if kth neighbor block exists (is physically real) and  was actually hit within clustering time window (has good pulse integral in time window)
+          //M. Mathison Oct. 31, 2023: Added in time window for clustering.
+	  if( fArray->GetNeighbor(good_blk_id[j], k)!=-1  && blk_hit_idx[ fArray->GetNeighbor(good_blk_id[j], k) ]!=-1 && TMath::Abs(blk_pulseTime[ fArray->GetNeighbor(good_blk_id[j], k) ] - blk_pulseTime[ good_blk_id[j] ]) < fClusterTimeWindow ){
 
 	    //cout<< "Valid Neighbor Found : (k-index, Neighbor Block ID, pulseInt) = " << k << ", " <<  fArray->GetNeighbor(good_blk_id[j], k)  << ", " << blk_pulseInt[ fArray->GetNeighbor(good_blk_id[j], k) ] << endl; 
 
@@ -1216,15 +1221,19 @@ void THcNPSCalorimeter::ClusterNPS_Hits(THcNPSShowerHitSet& HitSet, THcNPSShower
 	for (THcNPSShowerClusterIt k=(*cluster).begin(); k!=(*cluster).end();
 	     ++k) {
 
-	  //cout << "TESTING 1: (**i)->hitID = " << (*i)->hitID() << endl;
-	  //cout << "TESTING 2: (*k)->hitID = " << (*k)->hitID() << endl;
-	  if(pIpas[ (*i)->hitID() ] == pIpas[ (*k)->hitID() ]){
+	  //cout << "TESTING 1: (*i)->hitID = " << (*i)->hitID() << ", (*i) PI = " << pIpas[ (*i)->hitID() ] << ", (*i) T = " << blk_pulseTime[ (*i)->hitID() ] << endl;
+	  //cout << "TESTING 2: (*k)->hitID = " << (*k)->hitID() << ", (*k) PI = " << pIpas[ (*k)->hitID() ] << ", (*k) T = " << blk_pulseTime[ (*k)->hitID() ] << endl;
+	  //cout << "TESTING 3: Pulse diff T = " << TMath::Abs(blk_pulseTime[ (*i)->hitID() ] - blk_pulseTime[ (*k)->hitID() ]) << endl;
+	  if(pIpas[ (*i)->hitID() ] == pIpas[ (*k)->hitID() ] && TMath::Abs(blk_pulseTime[ (*i)->hitID() ] - blk_pulseTime[ (*k)->hitID() ]) < fClusterTimeWindow){
 	    //	  if ((**i).isNeighbour(*k)) {
 	    (*cluster).insert(*i);      //If the hit #i is neighbouring a hit
-	    HitSet.erase(i);            //in the cluster, then move it
-	                                //into the cluster.
-	    clustered = true;
+	    HitSet.erase(i);            //in the cluster, and the hits are 
+	                                //within the time window,
+	    clustered = true;           //then move it into the cluster.
+	    //cout << "Clustered!" << endl;
 	  }
+
+	  //else cout << "NOT clustered!" << endl;
 
 	  if (clustered) break;
 	}                               //k

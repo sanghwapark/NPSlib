@@ -716,10 +716,11 @@ Int_t THcNPSArray::CoarseProcess(TClonesArray& tracks)
     
     cout << "  List of unclustered hits. Total hits:     " << fTotNumAdcHits << endl;
     THcNPSShowerHitIt it = HitSet.begin();    //<set> version
-    for (Int_t i=0; i!=fTotNumGoodAdcHits; i++) {
+    /*for (Int_t i=0; i!=fTotNumGoodAdcHits; i++) {
       cout << "  hit " << i << ": ";
       (*(it++))->show();
-    }
+      }*/
+    cout << "---Calling clustering process---" << endl;
   }
   
   ////Sanity check. (Vardan)
@@ -735,10 +736,12 @@ Int_t THcNPSArray::CoarseProcess(TClonesArray& tracks)
   
   if(fClustMethod==0){  //Original HCANA calorimeter clustering method
     static_cast<THcNPSCalorimeter*>(fParent)->ClusterHits(HitSet, fClusterList);
+    cout << "---Calling ClusterHits (original HCANA method)---" << endl;
   }
 
   if(fClustMethod==1){   //C.Y. Feb 09, 2021:  NPS Clustering using 'Cellular Automata' approach
     static_cast<THcNPSCalorimeter*>(fParent)->ClusterNPS_Hits(HitSet, fClusterList);
+    cout << "---Calling ClusterNPS_Hits (cellular automata method)---" << endl;
   }
   
   assert( HitSet.empty() );  // else bug in ClusterHits()
