@@ -736,12 +736,12 @@ Int_t THcNPSArray::CoarseProcess(TClonesArray& tracks)
   
   if(fClustMethod==0){  //Original HCANA calorimeter clustering method
     static_cast<THcNPSCalorimeter*>(fParent)->ClusterHits(HitSet, fClusterList);
-    cout << "---Calling ClusterHits (original HCANA method)---" << endl;
+    if (static_cast<THcNPSCalorimeter*>(fParent)->fdbg_clusters_cal) cout << "---Calling ClusterHits (original HCANA method)---" << endl;
   }
 
   if(fClustMethod==1){   //C.Y. Feb 09, 2021:  NPS Clustering using 'Cellular Automata' approach
     static_cast<THcNPSCalorimeter*>(fParent)->ClusterNPS_Hits(HitSet, fClusterList);
-    cout << "---Calling ClusterNPS_Hits (cellular automata method)---" << endl;
+    if (static_cast<THcNPSCalorimeter*>(fParent)->fdbg_clusters_cal) cout << "---Calling ClusterNPS_Hits (cellular automata method)---" << endl;
   }
   
   assert( HitSet.empty() );  // else bug in ClusterHits()
