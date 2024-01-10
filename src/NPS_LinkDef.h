@@ -15,5 +15,6 @@
 #pragma link C++ class Decoder::VTPModule+;
 #pragma link C++ class Decoder::VLDModule+;
 #pragma link C++ class THcNPSTrackInfo+;
+#pragma link C++ class THcNPSConfigEvtHandler+;
 
 #endif

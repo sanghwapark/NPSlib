@@ -21,6 +21,7 @@ set(src
   VTPModule.cxx
   VLDModule.cxx
   THcNPSTrackInfo.cxx
+  THcNPSConfigEvtHandler.cxx
   )
 
 # Headers
